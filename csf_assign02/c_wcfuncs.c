@@ -127,10 +127,20 @@ void wc_tolower(unsigned char *w) {
   // TODO: implement
 }
 
-// Remove any non-alphaabetic characters from the end of the
+// Remove any non-alphabetic characters from the end of the
 // NUL-terminated character string pointed-to by w.
 void wc_trim_non_alpha(unsigned char *w) {
-  // TODO: implement
+  int k = strlen(w) - 1;
+  while(!wc_isalpha(w[k])) {
+    k--;
+  }
+  w[k+1] = '\0';
+  // char *k = w + strlen(w) - 1;
+  // while (!wc_isalpha(*k)) {
+  //   k--;
+  // }
+  // k[1] = '\0';
+  return w;
 }
 
 // Search the specified linked list of WordEntry objects for an object
