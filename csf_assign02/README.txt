@@ -4,18 +4,19 @@ Iason Mihalopoulos (JHED: imihalo1)
 Milestone 1 (20%):
 Siam:
     wc_hash
-
-In c_wcfuncs.c:
-    wc_str_compare
     wc_str_copy
-    wc_isspace
     wc_isalpha
-    wc_readnext
     wc_tolower
-    wc_trim_non_alpha
     wc_find_or_insert
-    wc_dict_find_or_insert
     wc_free_chain
+
+Jason:
+    wc_str_compare
+    wc_isspace
+    wc_readnext
+    wc_trim_non_alpha
+    wc_dict_find_or_insert
+
 C implementation of the main program (in c_wcmain.c)
 Assembly language implementations of the following functions (in asm_wcfuncs.S):
     wc_isspace
