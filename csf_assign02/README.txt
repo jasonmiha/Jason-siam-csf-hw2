@@ -2,8 +2,10 @@ Mohammed Siam (JHED: msiam1)
 Iason Mihalopoulos (JHED: imihalo1)
 
 Milestone 1 (20%):
-In c_wcfuncs.c:
+Siam:
     wc_hash
+
+In c_wcfuncs.c:
     wc_str_compare
     wc_str_copy
     wc_isspace
