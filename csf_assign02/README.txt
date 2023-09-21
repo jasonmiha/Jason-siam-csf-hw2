@@ -14,7 +14,7 @@ Jason:
     wc_str_compare - done
     wc_isspace - done
     wc_readnext - done
-    wc_trim_non_alpha
+    wc_trim_non_alpha - done
     wc_dict_find_or_insert
 
 C implementation of the main program (in c_wcmain.c)
