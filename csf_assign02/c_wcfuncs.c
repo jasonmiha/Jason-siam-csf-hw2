@@ -77,7 +77,7 @@ void wc_str_copy(unsigned char *dest, const unsigned char *source) {
 //   '\f'
 //   '\v'
 int wc_isspace(unsigned char c) {
-  return isspace(c);
+  return (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f' || c == '\v');
 }
 
 // Return 1 if the character code in c is an alphabetic character
@@ -101,7 +101,24 @@ int wc_isalpha(unsigned char c) {
 // MAX_WORDLEN characters, then only the first MAX_WORDLEN
 // characters in the sequence should be stored in the array.
 int wc_readnext(FILE *in, unsigned char *w) {
-  // TODO: implement
+
+  int c = fgetc(in);
+  int len = 0;
+  while (c != EOF && !wc_isspace(c)) {
+    if (len < MAX_WORDLEN) {
+      w[len] = c;
+      len++;
+    }
+    c = fgetc(in);
+  }
+  w[len] = '\0';
+  // Check if a word was read successfully
+    if (len > 0) {
+        return 1; // Successfully read a word
+    } else {
+        return 0; // No word was read
+    }
+  
 }
 
 // Convert the NUL-terminated character string in the array

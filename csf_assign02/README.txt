@@ -11,9 +11,9 @@ Siam:
     wc_free_chain
 
 Jason:
-    wc_str_compare
-    wc_isspace
-    wc_readnext
+    wc_str_compare - done
+    wc_isspace - done
+    wc_readnext - done
     wc_trim_non_alpha
     wc_dict_find_or_insert
 
