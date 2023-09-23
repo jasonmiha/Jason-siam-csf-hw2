@@ -104,16 +104,23 @@ int wc_isalpha(unsigned char c) {
 // MAX_WORDLEN characters, then only the first MAX_WORDLEN
 // characters in the sequence should be stored in the array.
 int wc_readnext(FILE *in, unsigned char *w) {
-
+  printf("here i am\n");
   int c = fgetc(in);
+  printf("here i am2\n");
+
   int len = 0;
+  printf("here i am3\n");
+
   while (c != EOF && !wc_isspace(c)) {
+  printf("here i am4\n");
+
     if (len < MAX_WORDLEN) {
       w[len] = c;
       len++;
     }
     c = fgetc(in);
   }
+  printf("sdkjfhksdabfaksjd\n");
   w[len] = '\0';
   // Check if a word was read successfully
     if (len > 0) {

@@ -13,7 +13,11 @@ int main(int argc, char **argv) {
   uint32_t unique_words = 0;
   const unsigned char *best_word = (const unsigned char *) "";
   uint32_t best_word_count = 0;
-
+  printf("Halelsaldsafkslknfdsfsdklnfsdfk\n");
+  FILE * fp = fopen("jason.txt", "rw");
+  printf("jdksbfjdsdbfjhgdbsjhfbdsjhfhg\n");
+  struct WordEntry * buckets[HASHTABLE_SIZE] = {NULL};
+  printf("ifhdsfisdhflidhslfihn\n");
   // TODO: implement
   /* while ( next word is read successfully using wc_readnext ) {
   increase total word count by 1
@@ -26,6 +30,17 @@ int main(int argc, char **argv) {
 
   increment the WordEntry's count
 }*/
+  printf("dsbfndsbfjdsabfjhsdbc sdc\n");
+
+  unsigned char word[MAX_WORDLEN + 1];
+  while(wc_readnext(fp, word) == 1) {
+  printf("ifhdsfisfsdfds as fsf sdf sddhflidhslfihn\n");
+
+    total_words++;
+    wc_tolower(word);
+    wc_trim_non_alpha(word);
+    wc_dict_find_or_insert(buckets, HASHTABLE_SIZE, word)->count++;
+  }
 
   /*In finding the unique word with the highest number of occurrences, you will need to traverse the entire hash table 
   (i.e., scan through every WordEntry object in every bucket of the hash table.) 
