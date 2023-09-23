@@ -61,8 +61,11 @@ int wc_str_compare(const unsigned char *lhs, const unsigned char *rhs) {
 
 // Copy NUL-terminated source string to the destination buffer.
 void wc_str_copy(unsigned char *dest, const unsigned char *source) {
-  // TODO: implement
-  strcpy(dest, source);
+  int len = strlen(source);
+  // copies up to and including '\0'
+  for (int i = 0; i <= len; i++) {
+    dest[i] = source[i];
+  }
 }
 
 // Return 1 if the character code in c is a whitespace character,
@@ -125,6 +128,12 @@ int wc_readnext(FILE *in, unsigned char *w) {
 // pointed-to by w so that every letter is lower-case.
 void wc_tolower(unsigned char *w) {
   // TODO: implement
+  int len = strlen(w);
+  for (int i = 0; i < len; i++) {
+    if(w[i] >= 'A' && w[i] <= 'Z'){
+      w[i] += 32; // adding by 32 changes it to lowercase in ascii
+    }
+  }
 }
 
 // Remove any non-alphabetic characters from the end of the
@@ -140,7 +149,7 @@ void wc_trim_non_alpha(unsigned char *w) {
   //   k--;
   // }
   // k[1] = '\0';
-  return w;
+  // return w;
 }
 
 // Search the specified linked list of WordEntry objects for an object
@@ -157,16 +166,16 @@ void wc_trim_non_alpha(unsigned char *w) {
 // job to update the count.)
 struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char *s, int *inserted) {
   struct WordEntry* itr;
-  // struct WordEntry* prev;
-  for (itr = head; itr != NULL; itr++) {
-    if (wc_str_compare(itr, s) == 0) { // matching object found in LinkedList
+  for (itr = head; itr != NULL; itr=itr->next) {
+    if (wc_str_compare(itr->word, s) == 0) { // matching object found in LinkedList
       *inserted = 0;
       return itr;
     }
-    // prev = itr;
   }
   struct WordEntry* entry = malloc(sizeof(struct WordEntry));
   entry->next = head;
+  entry->count = 0;
+  wc_str_copy(entry->word, s);
   head = entry;
   *inserted = 1;
   return entry;
@@ -181,11 +190,19 @@ struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char 
 // which represents s.
 struct WordEntry *wc_dict_find_or_insert(struct WordEntry *buckets[], unsigned num_buckets, const unsigned char *s) {
   int index = wc_hash(s) % num_buckets;
+  // printf("index is %d", index);
   int inserted;
-  return wc_find_or_insert(buckets[index], s, &inserted);
+  buckets[index] = wc_find_or_insert(buckets[index], s, &inserted); 
+  return buckets[index];
 }
 
 // Free all of the nodes in given linked list of WordEntry objects.
 void wc_free_chain(struct WordEntry *p) {
-  // TODO: implement
+  struct WordEntry * itr = p;
+  struct WordEntry * prev = NULL;
+  while (itr != NULL) {
+    prev = itr;
+    itr = itr->next;
+    free(prev);
+  }
 }

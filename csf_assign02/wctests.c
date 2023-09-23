@@ -311,6 +311,7 @@ void test_dict_find_or_insert(TestObjs *objs) {
   ++p->count;
 }
 
+// Checked valgrind by isolating only this function; we do not have memory leaks.
 void test_free_chain(TestObjs *objs) {
   (void) objs;
 

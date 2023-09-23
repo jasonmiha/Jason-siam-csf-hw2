@@ -3,12 +3,12 @@ Iason Mihalopoulos (JHED: imihalo1)
 
 Milestone 1 (20%):
 Siam:
-    wc_hash
-    wc_str_copy
-    wc_isalpha
-    wc_tolower
-    wc_find_or_insert
-    wc_free_chain
+    wc_hash - done
+    wc_str_copy - done
+    wc_isalpha - done
+    wc_tolower - done
+    wc_find_or_insert - done
+    wc_free_chain - done
 
 Jason:
     wc_str_compare - done
