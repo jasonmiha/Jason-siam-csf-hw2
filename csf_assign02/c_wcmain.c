@@ -92,7 +92,11 @@ int main(int argc, char **argv)
   // TODO: make sure file is closed (if one was opened)
   fclose(fp);
   // TODO: make sure memory is freed
-
+  for (int i = 0; i < HASHTABLE_SIZE; i++) {
+    if (buckets[i] != NULL) {
+      wc_free_chain(buckets[i]);
+    }
+  }
   return 0;
 }
 
