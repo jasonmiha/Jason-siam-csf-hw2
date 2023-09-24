@@ -101,7 +101,25 @@ wc_isspace:
  */
 	.globl wc_isalpha
 wc_isalpha:
-	/* TODO: implement */
+	subq $8, %rsp 			/* adjust stack pointer */
+	cmp %rdi, 'A'
+	jl not_alpha
+	cmp %rdi, 'Z'
+
+	jle is_alpha
+	cmp %rdi, 'a'
+	jl not_alpha
+	cmp %rdi, 'z'
+	jle is_alpha
+
+not_alpha:
+	xor eax, eax
+	addq $8, %rsp
+	ret
+
+is_alpha:
+	mov eax, 1
+	addq $8, %rsp
 	ret
 
 /*
