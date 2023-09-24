@@ -66,6 +66,7 @@ void wc_str_copy(unsigned char *dest, const unsigned char *source) {
   for (int i = 0; i <= len; i++) {
     dest[i] = source[i];
   }
+  // strcpy(dest, source);
 }
 
 // Return 1 if the character code in c is a whitespace character,
