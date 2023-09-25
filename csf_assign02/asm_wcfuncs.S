@@ -89,6 +89,7 @@ wc_str_copy:
  */
 	.globl wc_isspace
 wc_isspace:
+
 	/* TODO: implement */
 	ret
 

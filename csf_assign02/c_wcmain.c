@@ -14,7 +14,7 @@ int main(int argc, char **argv)
   uint32_t unique_words = 0;
   const unsigned char *best_word = (const unsigned char *)"";
   uint32_t best_word_count = 0;
-  FILE *fp = fopen("jason.txt", "rw");
+  FILE *fp = fopen(argv[1], "rw");
   struct WordEntry *buckets[HASHTABLE_SIZE] = {NULL};
 
   unsigned char word[MAX_WORDLEN + 1];

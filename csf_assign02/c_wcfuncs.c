@@ -22,7 +22,7 @@
 // being unsigned (in the range 0..255)
 uint32_t wc_hash(const unsigned char *w) {
   uint32_t hash_code = 5381;
-  int l = strlen(w);
+  int l = wc_strlen(w);
   
   for (int i = 0; i < l; i++) {
     hash_code = hash_code * 33 + w[i];
@@ -61,7 +61,7 @@ int wc_str_compare(const unsigned char *lhs, const unsigned char *rhs) {
 
 // Copy NUL-terminated source string to the destination buffer.
 void wc_str_copy(unsigned char *dest, const unsigned char *source) {
-  int len = strlen(source);
+  int len = wc_strlen(source);
   // copies up to and including '\0'
   for (int i = 0; i <= len; i++) {
     dest[i] = source[i];
@@ -87,7 +87,7 @@ int wc_isspace(unsigned char c) {
 // Return 1 if the character code in c is an alphabetic character
 // ('A' through 'Z' or 'a' through 'z'), 0 otherwise.
 int wc_isalpha(unsigned char c) {
-  if (c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z') {
+  if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
     return 1;
   }
   return 0;
@@ -105,23 +105,15 @@ int wc_isalpha(unsigned char c) {
 // MAX_WORDLEN characters, then only the first MAX_WORDLEN
 // characters in the sequence should be stored in the array.
 int wc_readnext(FILE *in, unsigned char *w) {
-  printf("here i am\n");
   int c = fgetc(in);
-  printf("here i am2\n");
-
   int len = 0;
-  printf("here i am3\n");
-
   while (c != EOF && !wc_isspace(c)) {
-  printf("here i am4\n");
-
     if (len < MAX_WORDLEN) {
       w[len] = c;
       len++;
     }
     c = fgetc(in);
   }
-  printf("sdkjfhksdabfaksjd\n");
   w[len] = '\0';
   // Check if a word was read successfully
     if (len > 0) {
@@ -136,7 +128,7 @@ int wc_readnext(FILE *in, unsigned char *w) {
 // pointed-to by w so that every letter is lower-case.
 void wc_tolower(unsigned char *w) {
   // TODO: implement
-  int len = strlen(w);
+  int len = wc_strlen(w);
   for (int i = 0; i < len; i++) {
     if(w[i] >= 'A' && w[i] <= 'Z'){
       w[i] += 32; // adding by 32 changes it to lowercase in ascii
@@ -147,7 +139,7 @@ void wc_tolower(unsigned char *w) {
 // Remove any non-alphabetic characters from the end of the
 // NUL-terminated character string pointed-to by w.
 void wc_trim_non_alpha(unsigned char *w) {
-  int k = strlen(w) - 1;
+  int k = wc_strlen(w) - 1;
   while(!wc_isalpha(w[k])) {
     k--;
   }
@@ -214,3 +206,13 @@ void wc_free_chain(struct WordEntry *p) {
     free(prev);
   }
 }
+
+ int wc_strlen(const unsigned char* s) {
+    int size = 0;
+    const unsigned char * itr = s;
+    while (*itr != '\0') {
+      itr++;
+      size++;
+    }
+    return size;
+  }
