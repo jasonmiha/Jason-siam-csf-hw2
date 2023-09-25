@@ -19,8 +19,8 @@ Jason:
 
 C implementation of the main program (in c_wcmain.c) - done
 Assembly language implementations of the following functions (in asm_wcfuncs.S):
-    wc_isspace
-    wc_isalpha
+    wc_isspace - done
+    wc_isalpha - done
     wc_str_compare
 
 

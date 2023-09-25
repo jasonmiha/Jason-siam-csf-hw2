@@ -89,9 +89,30 @@ wc_str_copy:
  */
 	.globl wc_isspace
 wc_isspace:
+	subq $8, %rsp /* adjust stack pointer */
+	cmp $' ', %rdi
+	je .Lisspace
+	cmp $'\t', %rdi
+	je .Lisspace
+	cmp $'\r', %rdi
+	je .Lisspace
+	cmp $'\n', %rdi
+	je .Lisspace
+	cmp $'\f', %rdi
+	je .Lisspace
+	cmp $'\v', %rdi
+	je .Lisspace
+	jmp .Lisnotspace
 
-	/* TODO: implement */
+.Lisnotspace:
+	mov $0, %rax
+	addq $8, %rsp
 	ret
+.Lisspace:
+	mov $1, %rax
+	addq $8, %rsp
+	ret
+
 
 /*
  * Return 1 if the character code in c is an alphabetic character
@@ -103,23 +124,23 @@ wc_isspace:
 	.globl wc_isalpha
 wc_isalpha:
 	subq $8, %rsp 			/* adjust stack pointer */
-	cmp %rdi, 'A'
-	jl not_alpha
-	cmp %rdi, 'Z'
+	cmp  $'A', %rdi
+	jl .Lnot_alpha
+	cmp $'Z', %rdi
 
-	jle is_alpha
-	cmp %rdi, 'a'
-	jl not_alpha
-	cmp %rdi, 'z'
-	jle is_alpha
+	jle .Lis_alpha
+	cmp $'a', %rdi
+	jl .Lnot_alpha
+	cmp  $'z', %rdi
+	jle .Lis_alpha
 
-not_alpha:
-	xor eax, eax
+.Lnot_alpha:
+	mov $0, %rax
 	addq $8, %rsp
 	ret
 
-is_alpha:
-	mov eax, 1
+.Lis_alpha:
+ 	mov $1, %rax
 	addq $8, %rsp
 	ret
 
