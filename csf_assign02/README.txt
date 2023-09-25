@@ -15,9 +15,9 @@ Jason:
     wc_isspace - done
     wc_readnext - done
     wc_trim_non_alpha - done
-    wc_dict_find_or_insert
+    wc_dict_find_or_insert - done
 
-C implementation of the main program (in c_wcmain.c)
+C implementation of the main program (in c_wcmain.c) - done
 Assembly language implementations of the following functions (in asm_wcfuncs.S):
     wc_isspace
     wc_isalpha

@@ -105,13 +105,15 @@ int wc_isalpha(unsigned char c) {
 // MAX_WORDLEN characters, then only the first MAX_WORDLEN
 // characters in the sequence should be stored in the array.
 int wc_readnext(FILE *in, unsigned char *w) {
-  int c = fgetc(in);
+  int c;
   int len = 0;
-  while (c != EOF && !wc_isspace(c)) {
-    if (len < MAX_WORDLEN) {
-      w[len] = c;
-      len++;
+  // Skip leading whitespace characters
+    while ((c = fgetc(in)) != EOF && wc_isspace(c)) {
+        // Do nothing, just skip whitespace
     }
+  while (c != EOF && !wc_isspace(c) && len < MAX_WORDLEN) {
+    w[len] = c;
+    len++;
     c = fgetc(in);
   }
   w[len] = '\0';
@@ -121,7 +123,6 @@ int wc_readnext(FILE *in, unsigned char *w) {
     } else {
         return 0; // No word was read
     }
-  
 }
 
 // Convert the NUL-terminated character string in the array
