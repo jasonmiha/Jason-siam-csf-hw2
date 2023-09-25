@@ -23,7 +23,7 @@
 uint32_t wc_hash(const unsigned char *w) {
   uint32_t hash_code = 5381;
   int l = wc_strlen(w);
-  
+
   for (int i = 0; i < l; i++) {
     hash_code = hash_code * 33 + w[i];
   }

@@ -100,28 +100,31 @@ wc_isspace:
  * C function prototype:
  *    int wc_isalpha(unsigned char c);
  */
-	.globl wc_isalpha
+.globl wc_isalpha
 wc_isalpha:
-	subq $8, %rsp 			/* adjust stack pointer */
-	cmp %rdi, 'A'
-	jl not_alpha
-	cmp %rdi, 'Z'
+    subq $8, %rsp           /* Adjust stack pointer */
+    
+    movzx eax, dil         /* Zero-extend the character code into eax */
 
-	jle is_alpha
-	cmp %rdi, 'a'
-	jl not_alpha
-	cmp %rdi, 'z'
-	jle is_alpha
+    cmpb $'A', al          /* Compare with 'A' using a byte comparison */
+    jl .Lnot_alpha         /* Jump if less than 'A' */
+    cmpb $'Z', al          /* Compare with 'Z' using a byte comparison */
+    jle .Lis_alpha         /* Jump if less than or equal to 'Z' */
+    
+    cmpb $'a', al          /* Compare with 'a' using a byte comparison */
+    jl .Lnot_alpha         /* Jump if less than 'a' */
+    cmpb $'z', al          /* Compare with 'z' using a byte comparison */
+    jle .Lis_alpha         /* Jump if less than or equal to 'z' */
 
-not_alpha:
-	xor eax, eax
-	addq $8, %rsp
-	ret
+.Lnot_alpha:
+    xor eax, eax           /* Character is not alphabetic, set eax to 0 */
+    addq $8, %rsp          /* Restore the stack pointer */
+    ret
 
-is_alpha:
-	mov eax, 1
-	addq $8, %rsp
-	ret
+.Lis_alpha:
+    mov eax, 1             /* Character is alphabetic, set eax to 1 */
+    addq $8, %rsp          /* Restore the stack pointer */
+    ret
 
 /*
  * Read the next word from given input stream, storing
