@@ -123,30 +123,26 @@ wc_isspace:
  */
 .globl wc_isalpha
 wc_isalpha:
-    subq $8, %rsp           /* Adjust stack pointer */
-    
-    movzx eax, dil         /* Zero-extend the character code into eax */
+	subq $8, %rsp 			/* adjust stack pointer */
+	cmp  $'A', %rdi
+	jl .Lnot_alpha
+	cmp $'Z', %rdi
 
-    cmpb $'A', al          /* Compare with 'A' using a byte comparison */
-    jl .Lnot_alpha         /* Jump if less than 'A' */
-    cmpb $'Z', al          /* Compare with 'Z' using a byte comparison */
-    jle .Lis_alpha         /* Jump if less than or equal to 'Z' */
-    
-    cmpb $'a', al          /* Compare with 'a' using a byte comparison */
-    jl .Lnot_alpha         /* Jump if less than 'a' */
-    cmpb $'z', al          /* Compare with 'z' using a byte comparison */
-    jle .Lis_alpha         /* Jump if less than or equal to 'z' */
+	jle .Lis_alpha
+	cmp $'a', %rdi
+	jl .Lnot_alpha
+	cmp  $'z', %rdi
+	jle .Lis_alpha
 
 .Lnot_alpha:
-    xor eax, eax           /* Character is not alphabetic, set eax to 0 */
-    addq $8, %rsp          /* Restore the stack pointer */
-    ret
+	mov $0, %rax
+	addq $8, %rsp
+	ret
 
 .Lis_alpha:
-    mov eax, 1             /* Character is alphabetic, set eax to 1 */
-    addq $8, %rsp          /* Restore the stack pointer */
-    ret
-
+ 	mov $1, %rax
+	addq $8, %rsp
+	ret
 /*
  * Read the next word from given input stream, storing
  * the word in the array pointed-to by w. (This array should be

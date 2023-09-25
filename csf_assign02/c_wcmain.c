@@ -5,8 +5,6 @@
 // Suggested number of buckets for the hash table
 #define HASHTABLE_SIZE 13249
 
-// TODO: prototypes for helper functions
-
 int main(int argc, char **argv)
 {
   // stats (to be printed at end)
@@ -26,7 +24,6 @@ int main(int argc, char **argv)
     wc_dict_find_or_insert(buckets, HASHTABLE_SIZE, word)->count++;
   }
 
-  unsigned char bestWord[MAX_WORDLEN + 1];
   for (int i = 0; i < HASHTABLE_SIZE; i++)
   {
     struct WordEntry *itr;
@@ -53,9 +50,9 @@ int main(int argc, char **argv)
   printf("Unique words read: %u\n", (unsigned int)unique_words);
   printf("Most frequent word: %s (%u)\n", (const char *)best_word, best_word_count);
 
-  // TODO: make sure file is closed (if one was opened)
+  // make sure file is closed (if one was opened)
   fclose(fp);
-  // TODO: make sure memory is freed
+  // make sure memory is freed
   for (int i = 0; i < HASHTABLE_SIZE; i++) {
     if (buckets[i] != NULL) {
       wc_free_chain(buckets[i]);
