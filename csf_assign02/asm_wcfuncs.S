@@ -55,9 +55,12 @@ wc_hash:
  * C function prototype:
  *    int wc_str_compare(const unsigned char *lhs, const unsigned char *rhs);
  */
+
 	.globl wc_str_compare
 wc_str_compare:
-	/* TODO: implement */
+	subq $8, %rsp /* adjust stack pointer */
+	cmp (%rdi), (%rsi)
+	.LStringEnd
 	ret
 
 /*
@@ -70,6 +73,17 @@ wc_str_compare:
 wc_str_copy:
 	/* TODO: implement */
 	ret
+
+ 	/*
+	Loop that compares string char by char
+	base case: one of the pointers is null
+	compare the two string and return appropriate value
+	increment poth pointers
+
+	if both pointers point to null terminator, return 0
+	otherwise check which one is the prefix of the other
+
+	*/
 
 /*
  * Return 1 if the character code in c is a whitespace character,
