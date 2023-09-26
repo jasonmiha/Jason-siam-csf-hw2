@@ -104,27 +104,28 @@ wc_str_copy:
 	.globl wc_isspace
 wc_isspace:
 	subq $8, %rsp /* adjust stack pointer */
-	cmp $' ', %rdi
+	cmp $32, %rdi /* check if its a space */
+	je .Lisspace /* jump to isspace label if input param is equal to space */
+	cmp $9, %rdi /* check if its '\t' */
+	je .Lisspace 
+	cmp $13, %rdi /* check if its '\r' */
 	je .Lisspace
-	cmp $'\t', %rdi
+	cmp $10, %rdi /* check if its '\n' */
 	je .Lisspace
-	cmp $'\r', %rdi
+	cmp $12, %rdi /* check if its '\f' */
 	je .Lisspace
-	cmp $'\n', %rdi
+	cmp $11, %rdi /* check if its '\v' */
 	je .Lisspace
-	cmp $'\f', %rdi
-	je .Lisspace
-	cmp $'\v', %rdi
-	je .Lisspace
-	jmp .Lisnotspace
 
-.Lisnotspace:
-	mov $0, %rax
-	addq $8, %rsp
+	/* if it gets to this point, 
+	it means it is not a space character */
+	mov $0, %rax /* copy 0 to return variable */
+	addq $8, %rsp /* adjust stack pointer */
 	ret
-.Lisspace:
-	mov $1, %rax
-	addq $8, %rsp
+	
+.Lisspace: /* if it gets to this point, it is a whitespace character */
+	mov $1, %rax /* copy 1 to return variable to indicate that it's a whitespace character */
+	addq $8, %rsp /* adjust stack pointer */
 	ret
 
 
