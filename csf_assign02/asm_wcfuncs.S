@@ -37,7 +37,20 @@
  */
 	.globl wc_hash
 wc_hash:
-	/* TODO: implement */
+	subq $8, %rsp		/* align stack pointer */
+	mov $1, %ecx		/* loop counter */
+	jmp .LcheckCond
+
+	.Ltop:										/* loop body */
+		hash_code = hash_code * 33 + w[%ecx] 	/* update hash */
+		inc %ecx								/* increment loop counter */
+
+	.LcheckCond:
+		cmp %ecx, len(w)		/* loop condition */
+		jX .Ltop				/* terminates loop */
+
+	mov hash_code, %rax			/* return hashcode */
+	addq $8, %rsp				/* realign stack pointer */
 	ret
 
 /*
@@ -74,16 +87,6 @@ wc_str_copy:
 	/* TODO: implement */
 	ret
 
- 	/*
-	Loop that compares string char by char
-	base case: one of the pointers is null
-	compare the two string and return appropriate value
-	increment poth pointers
-
-	if both pointers point to null terminator, return 0
-	otherwise check which one is the prefix of the other
-
-	*/
 
 /*
  * Return 1 if the character code in c is a whitespace character,
