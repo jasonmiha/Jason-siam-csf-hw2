@@ -59,10 +59,42 @@ wc_hash:
 	.globl wc_str_compare
 wc_str_compare:
 	subq $8, %rsp /* adjust stack pointer */
-	cmp (%rdi), (%rsi)
-	.LStringEnd
-	ret
+	mov %rdi, %r12 /* copy first param into register for comparison later on */ 
+	mov %rsi, %r11 /* copy second param into register for comparison later on */
+.LcharsRemaining:
+	cmp $'\0', (%r12) /* if first param is null terminator, jump to appropriate label */
+	je .LfirstParamIsNullTerminator
+	cmp $'\0', (%r11) /* if second param is null terminator, jump to appropriate label */
+	je .LsecondParamIsNullTerminator
+	mov (%r12), %dil /* copy first param to %dil register for comparison with second param */
+	cmp %dil, (%r11)
+	jl .LfirstParamGreaterThan /* if first param is greater than second param, jump to appropriate label */
+	jg .LfirstParamLessThan /* if first param is greater than second param, jump to appropriate label */
+	incq %r12 /* increment pointer address to access next char */
+	incq %r11 /* increment pointer address to access next char */
+	jmp .LcharsRemaining /* repeat loop */
 
+.LfirstParamLessThan:
+	mov $-1, %rax /* copy -1 to return register */
+	addq $8, %rsp /* adjust stack pointer */
+	ret
+.LfirstParamGreaterThan:
+	mov $1, %rax /* copy 1 to return register */
+	addq $8, %rsp /* adjust stack pointer */
+	ret
+.LfirstParamIsNullTerminator:
+	cmp $'\0', (%r11) /* check if 2nd param is also null terminator */
+	jne .LfirstParamLessThan /* if second param not null terminator, it means rhs string is less than lhs string, so jump to appropriate label to handle that */
+	mov $0, %rax /* if second param is null terminator, then both strings are equal, so copy 0 to return register */
+	addq $8, %rsp /* adjust stack pointer */
+	ret
+.LsecondParamIsNullTerminator:
+	cmp $'\0', (%r12) /* check if 1st param is also null terminator */
+	jne .LfirstParamGreaterThan /* if 1st param not null terminator, it means rhs string is greater than lhs string, so jump to appropriate label  */
+	mov $0, %rax /* if second param is also a null terminator, then both strings are equal so copy 0 to return register */
+	addq $8, %rsp /* adjust stack pointer */
+	ret
+	
 /*
  * Copy NUL-terminated source string to the destination buffer.
  *
