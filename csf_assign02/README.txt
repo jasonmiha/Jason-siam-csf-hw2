@@ -29,3 +29,17 @@ Milestone 2 (80%):
 Assembly language implementations of all remaining functions (in asm_wcfuncs.S)
 Assembly language implementation of the main program (in asm_wcmain.S, 4% of assignment grade)
 Design and coding style (10% of assignment grade)
+
+Functions:
+
+Jason:
+wc_readnext
+wc_trim_non_alpha
+wc_dict_find_or_insert
+wc_hash
+
+Siam:
+wc_str_copy
+wc_tolower
+wc_find_or_insert
+wc_free_chain
