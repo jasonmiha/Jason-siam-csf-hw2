@@ -37,21 +37,22 @@
  */
 	.globl wc_hash
 wc_hash:
-	// subq $8, %rsp		/* align stack pointer */
-	// mov $1, %ecx		/* loop counter */
-	// jmp .LcheckCond
-// 
-	// .Ltop:										/* loop body */
-	// 	hash_code = hash_code * 33 + w[%ecx] 	/* update hash */
-	// 	inc %ecx								/* increment loop counter */
-// 
-	// .LcheckCond:
-	// 	cmp %ecx, len(w)		/* loop condition */
-	// 	jX .Ltop				/* terminates loop */
-// 
-	// mov hash_code, %rax			/* return hashcode */
-	// addq $8, %rsp				/* realign stack pointer */
-	// ret
+	subq $8, %rsp		/* align stack pointer */
+	mov $5381, %r10
+	jmp .LcheckCond
+	.Ltop:	
+		mov $33, %r11
+		imul %r11, %r10						/* loop body */
+		add (%rdi), %r10						/* update hash */
+	 	inc %rdi								/* increment loop counter */
+	
+	.LcheckCond:
+	 	cmp $0, (%rdi)  		/* loop condition */
+	 	jne .Ltop				/* terminates loop */
+	
+	mov %r10, %rax			/* return hashcode */
+	addq $8, %rsp				/* realign stack pointer */
+	ret
 
 /*
  * Compare two strings lexicographically. Return
