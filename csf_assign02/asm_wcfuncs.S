@@ -37,22 +37,23 @@
  */
 	.globl wc_hash
 wc_hash:
-	subq $8, %rsp		/* align stack pointer */
-	mov $5381, %r10
-	jmp .LcheckCond
+	subq $8, %rsp				/* align stack pointer */
+	mov $5381, %rax				/* initialize hash value */
+
 	.Ltop:	
-		mov $33, %r11
-		imul %r11, %r10						/* loop body */
-		add (%rdi), %r10						/* update hash */
-	 	inc %rdi								/* increment loop counter */
+		movb (%rdi), %bl		/* copy first char of string into a one byte register */
+		cmp $0, %bl				/* If null terminator, done */
+		je .Ldone
+		mov $33, %r11			/* temp variable */
+		mul %r11				/* hash_code * 33 */
+		movzbq %bl, %rbx		/* zero extend char value */
+		add %rbx, %rax			/* hash_code + c */
+	 	inc %rdi				/* move to the next char */
+		jmp .Ltop
 	
-	.LcheckCond:
-	 	cmp $0, (%rdi)  		/* loop condition */
-	 	jne .Ltop				/* terminates loop */
-	
-	mov %r10, %rax			/* return hashcode */
-	addq $8, %rsp				/* realign stack pointer */
-	ret
+	.Ldone:
+		addq $8, %rsp			/* restore stack pointer */
+		ret
 
 /*
  * Compare two strings lexicographically. Return
