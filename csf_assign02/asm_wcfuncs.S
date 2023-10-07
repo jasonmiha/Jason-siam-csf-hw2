@@ -37,21 +37,23 @@
  */
 	.globl wc_hash
 wc_hash:
-	// subq $8, %rsp		/* align stack pointer */
-	// mov $1, %ecx		/* loop counter */
-	// jmp .LcheckCond
-// 
-	// .Ltop:										/* loop body */
-	// 	hash_code = hash_code * 33 + w[%ecx] 	/* update hash */
-	// 	inc %ecx								/* increment loop counter */
-// 
-	// .LcheckCond:
-	// 	cmp %ecx, len(w)		/* loop condition */
-	// 	jX .Ltop				/* terminates loop */
-// 
-	// mov hash_code, %rax			/* return hashcode */
-	// addq $8, %rsp				/* realign stack pointer */
-	// ret
+	subq $8, %rsp				/* align stack pointer */
+	mov $5381, %rax				/* initialize hash value */
+
+	.Ltop:	
+		movb (%rdi), %bl		/* copy first char of string into a one byte register */
+		cmp $0, %bl				/* If null terminator, done */
+		je .Lend
+		mov $33, %r11			/* temp variable */
+		mul %r11				/* hash_code * 33 */
+		movzbq %bl, %rbx		/* zero extend char value */
+		add %rbx, %rax			/* hash_code + c */
+	 	inc %rdi				/* move to the next char */
+		jmp .Ltop
+	
+	.Lend:
+		addq $8, %rsp			/* restore stack pointer */
+		ret
 
 /*
  * Compare two strings lexicographically. Return
@@ -224,8 +226,40 @@ wc_isalpha:
  */
 	.globl wc_readnext
 wc_readnext:
-	/* TODO: implement */
-	ret
+
+	.Lread:
+		mov $0, %r10
+
+		# Read a character from the input stream
+		movq $0, %rbx          # Clear rbx
+		movq $3, %rax          # syscall number for read
+		leaq (%rdi, %r10), %rdi # Calculate the address of the next character in the buffer
+		movq $1, %rdx          # Number of bytes to read
+
+		# Use the read system call to read a character into %rbx
+		syscall
+
+		cmp $0, %al			/* if null terminator, done */
+		je .Ldone
+		call wc_isspace		/* if not whitespace, continue reading the word */
+		cmp $1, %rax
+		jne .Lnot_space
+		cmp $0, %ecx		/* Check if we have read any characters */
+		je .Lread			/* If not, skip whitespace and continue reading */
+
+	.Lnot_space:
+		cmp $MAX_WORDLEN, %ecx
+		jae .Ldone
+		inc %ecx
+		mov %al, (%rsi, %rcx)
+		inc %rdi
+		jmp .Lread
+
+	.Ldone:
+		mov $0, (%rsi, %rcx)
+		mov $1, %edx 		/* word reading success */
+		ret
+
 
 /*
  * Convert the NUL-terminated character string in the array
@@ -289,8 +323,36 @@ strLen:
  */
 	.globl wc_trim_non_alpha
 wc_trim_non_alpha:
-	/* TODO: implement */
-	ret
+
+	subq $8, %rsp
+	mov $0, %rcx
+	movq %rdi, %rdx			/* rdx now points to current char */
+
+	.Lfind_end_loop:
+		movb (%rdx), %bl		/* copy first char of string into a one byte register */
+		cmp $0, %bl				/* If null terminator, done */
+		je .Ltrim_loop
+		inc %rdx
+		inc %rcx
+		jmp .Lfind_end_loop
+
+	.Ltrim_loop:
+		decq %rdx
+		dec %rcx
+		movb (%rdx), %bl
+		movzbq %bl, %rdi
+		subq $8, %rsp
+		call wc_isalpha
+		addq $8, %rsp
+		cmp $1, %rax
+		je .Lfinish
+		jmp .Ltrim_loop
+		
+	.Lfinish:
+		incq %rdx
+		movb $0, (%rdx)
+		addq $8, %rsp
+		ret
 
 /*
  * Search the specified linked list of WordEntry objects for an object
