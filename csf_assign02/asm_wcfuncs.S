@@ -274,7 +274,7 @@ wc_tolower:
 .LforLoop:
 	movb (%rdi), %r8b
 	cmpb $0, %r8b // is it a null terminator
-	je .Ldone
+	je .Lloop_done
 	cmpb $65, %r8b // rdi >= 65 (65 is ascii for 'A')
 	jl .LdoesntMeetComp
 	cmpb $90, %r8b // rdi <= 90 (90 is ascii for 'Z')
@@ -284,7 +284,7 @@ wc_tolower:
 .LdoesntMeetComp:
 	incq %rdi
 	jmp .LforLoop
-.Ldone:
+.Lloop_done:
 	addq $8, %rsp
 	ret
 
@@ -379,11 +379,11 @@ wc_find_or_insert:
 	pushq %rcx // saving callee-saved register %rcx = entry
 
 	movq %rdi, %rbx // save address of head pointer to itr pointer variable
-.LwhileElementsInList
+.LwhileElementsInList:
 	cmpq $0, %rdx // check if itr is null
 	je .LendOfList // if itr at end, we're at end of list and can terminate
 	
-.LendOfList
+.LendOfList:
 	// move sizeof WordEntry into rdi // 64 (word) + 32 (count) + 8 (next*) = 104
 	// call malloc
 	// move result of malloc, i.e. %rax, into %rcx
