@@ -39,7 +39,7 @@ wc_dict_find_or_insert
 wc_hash
 
 Siam:
-wc_str_copy
-wc_tolower
-wc_find_or_insert
+wc_str_copy - done
+wc_tolower - done
+wc_find_or_insert 
 wc_free_chain

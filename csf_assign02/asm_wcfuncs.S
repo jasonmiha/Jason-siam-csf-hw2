@@ -116,8 +116,21 @@ wc_str_compare:
  */
 	.globl wc_str_copy
 wc_str_copy:
-	/* TODO: implement */
-	ret
+	subq $8, %rsp
+.LWhileStillCopyingString:
+	movb (%rsi), %al // Get source character and store into al register
+	cmpb $0, %al // Is it a null terminator
+	je .LdoneCopying // If so, finished copying
+	movb %al, (%rdi) // Copy source char to dest char
+	// movb %r8b, (%rdi)
+	incq %rsi // Increment source pointer
+	incq %rdi // Increment dest pointer
+	jmp .LWhileStillCopyingString
+.LdoneCopying:
+	movb $0, (%rdi) // copy over the null terminator to dest index
+	// movb $'\0', (%rdi)
+	addq $8, %rsp
+	ret	
 
 
 /*
@@ -223,7 +236,48 @@ wc_readnext:
  */
 	.globl wc_tolower
 wc_tolower:
-	/* TODO: implement */
+	subq $8, %rsp
+.LforLoop:
+	movb (%rdi), %r8b
+	cmpb $0, %r8b // is it a null terminator
+	je .Ldone
+	cmpb $65, %r8b // rdi >= 65 (65 is ascii for 'A')
+	jl .LdoesntMeetComp
+	cmpb $90, %r8b // rdi <= 90 (90 is ascii for 'Z')
+	jg .LdoesntMeetComp
+	addb $32, %r8b
+	movb %r8b, (%rdi)
+.LdoesntMeetComp:
+	incq %rdi
+	jmp .LforLoop
+.Ldone:
+	addq $8, %rsp
+	ret
+
+/* // From example code on Assignment2 Course Site
+ * Determine the length of specified character string.
+ *
+ * Parameters:
+ *   s - pointer to a NUL-terminated character string
+ *
+ * Returns:
+ *    number of characters in the string
+ */
+	.globl strLen
+strLen:
+	subq $8, %rsp                 /* adjust stack pointer */
+	movq $0, %r10                 /* initial count is 0 */
+
+.LstrLenLoop:
+	cmpb $0, (%rdi)               /* found NUL terminator? */
+	jz .LstrLenDone               /* if so, done */
+	inc %r10                      /* increment count */
+	inc %rdi                      /* advance to next character */
+	jmp .LstrLenLoop              /* continue loop */
+
+.LstrLenDone:
+	movq %r10, %rax               /* return count */
+	addq $8, %rsp                 /* restore stack pointer */
 	ret
 
 /*
@@ -258,6 +312,29 @@ wc_trim_non_alpha:
 	.globl wc_find_or_insert
 wc_find_or_insert:
 	/* TODO: implement */
+	// subq $84, rsp // allocating memory from multiple of 16? as we will call other functions here
+	pushq %rbx // saving callee-saved register %rbx = itr 
+	pushq %rcx // saving callee-saved register %rcx = entry
+
+	movq %rdi, %rbx // save address of head pointer to itr pointer variable
+.LwhileElementsInList
+	cmpq $0, %rdx // check if itr is null
+	je .LendOfList // if itr at end, we're at end of list and can terminate
+	
+.LendOfList
+	// move sizeof WordEntry into rdi // 64 (word) + 32 (count) + 8 (next*) = 104
+	// call malloc
+	// move result of malloc, i.e. %rax, into %rcx
+	// {set next of the wordEntry. next is the last part of word entry and 8 bits away from ending
+	// {set count of wordEntry to 0}; count is 40 bits away from end
+	// {copy word to entry->word, which is first part of word entry}
+	// set inserted param value to 1. (3rd param)
+	// popq %rcx
+	// popq %rdx
+	// copy entry to rax
+	// ret
+
+
 	ret
 
 /*

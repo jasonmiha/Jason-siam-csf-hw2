@@ -197,7 +197,7 @@ struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char 
   entry->next = head;
   entry->count = 0;
   wc_str_copy(entry->word, s);
-  head = entry;
+  // head = entry;
   *inserted = 1;
   return entry;
 }
