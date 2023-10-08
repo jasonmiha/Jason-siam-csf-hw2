@@ -237,21 +237,27 @@ wc_isalpha:
 wc_readnext:
 
 	subq $8, %rsp
+	pushq %r12
 	mov $0, %r8				/* counter */
+	mov %rsi, %r12
 
 	.Lskip_whitespace:		/* skipping whitespace */
 
 		pushq %rdi
+		subq $8, %rsp
 		call fgetc			/* get next character */
+		addq $8, %rsp
 		popq %rdi
 
-		cmp $3, %al			/* if EOF, done */
+		cmp $-1, %al			/* if EOF, done */
 		je .Ldone
 
 		pushq %rdi
 		mov %rax, %rdi
 		movb %al, %r9b
+		subq $8, %rsp
 		call wc_isspace
+		addq $8, %rsp
 		popq %rdi
 		cmp $1, %rax		/* if whitespace, continue skipping */
 		je .Lskip_whitespace
@@ -263,28 +269,40 @@ wc_readnext:
 		cmp $63, %r8		/* if max wordlen read, done */
 		je .Ldone
 
-		movb %r9b, (%rsi, %r8)	/* move character to array */
+		movb %r9b, (%r12, %r8)	/* move character to array */
 		inc %r8
 
 		pushq %rdi
+		subq $8, %rsp
 		call fgetc				/* get next character */
+		addq $8, %rsp
 		mov %rax, %rdi
 		movb %al, %r9b
 
+		cmp $-1, %al			/* if EOF, done */
+		je .Ldone
+
+		cmp $0, %al			/* if EOF, done */
+		je .Ldone
+
+		subq $8, %rsp
 		call wc_isspace
+		addq $8, %rsp
 		popq %rdi
 		jmp .Lread
 
 	.Ldone:
-		cmp $0, %r8
+		cmp $0, %r8				/* if 0 characters read, unsuccessful */
 		je .Lunsuccessful
-		movb $0, (%rsi, %r8)	/* add null terminator */
-		mov $1, %rax 		/* word reading success */
+		movb $0, (%r12, %r8)	/* add null terminator */
+		mov $1, %rax 			/* word reading success */
+		popq %r12
 		addq $8, %rsp
 		ret
 
 	.Lunsuccessful:
 		mov $0, %rax
+		popq %r12
 		addq $8, %rsp
 		ret
 
