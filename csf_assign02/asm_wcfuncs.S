@@ -411,32 +411,69 @@ wc_trim_non_alpha:
  */
 	.globl wc_find_or_insert
 wc_find_or_insert:
-	/* TODO: implement */
-	// subq $84, rsp // allocating memory from multiple of 16? as we will call other functions here
-	pushq %rbx // saving callee-saved register %rbx = itr 
-	pushq %rcx // saving callee-saved register %rcx = entry
-
-	movq %rdi, %rbx // save address of head pointer to itr pointer variable
-.LwhileElementsInList:
-	cmpq $0, %rdx // check if itr is null
-	je .LendOfList // if itr at end, we're at end of list and can terminate
-	
-.LendOfList:
-	// move sizeof WordEntry into rdi // 64 (word) + 32 (count) + 8 (next*) = 104
-	// call malloc
-	// move result of malloc, i.e. %rax, into %rcx
-	// {set next of the wordEntry. next is the last part of word entry and 8 bits away from ending
-	// {set count of wordEntry to 0}; count is 40 bits away from end
-	// {copy word to entry->word, which is first part of word entry}
-	// set inserted param value to 1. (3rd param)
-	// popq %rcx
-	// popq %rdx
-	// copy entry to rax
-	// ret
-
-
-	ret
-
+// 	/* TODO: implement */
+// 	// subq $84, rsp // allocating memory from multiple of 16? as we will call other functions here
+// 	subq $8, %rsp // align stack ptr
+// 	pushq %rbx // saving callee-saved register %rbx = itr 
+// 	pushq %rcx // saving callee-saved register %rcx = entry
+// 	pushq %r12 // saving callee-saved register %r12 = s
+// 	pushq %r13 // saving callee-sasved register %13 = inserted address
+// 	pushq %r14 // saving callee-saved register %r14 = head ptr
+// 	movq %rdi, %r14
+// 	movq %rdx, %r13 // saving pointer of inserted to r13
+// 	movq %rsi, %r12 // saving pointer s to r12
+// 	movq %rdi, %rbx // save address of head pointer to itr pointer variable
+// .LwhileElementsInList:
+// 	cmpq $0, %rbx // check if itr is null
+// 	je .LendOfList // if itr at end, we're at end of list and can terminate
+// 	// put itr.word into rdi // itr.word is first part of struct
+// 	movq %rbx, %rdi
+// 	// put s into rsi
+// 	movq %r12, %rsi
+// 	// set iterator to next element // itr is pointer to struct, so beginning address of it should be at 64 + 32
+// 	leaq (%rbx, 96), %rbx
+// 	// call wc_str_compare // TODO: adjust stack ptr before calling
+// 	call wc_str_compare
+// 	// check if rax is 0
+// 	cmp $0, %rax
+// 	// if not 0, jump to top again
+// 	jne .LwhileElementsInList
+// 	// else:
+// 		// set value of inserted to 0
+// 	movq $0, (%r13)
+// 		// store itr to rax
+// 	leaq (%rbx, -96), %rax
+// 	jmp .LrestoreCalleeValuesAndReturn 
+// .LendOfList:
+// 	// move sizeof WordEntry into rdi // 64 (word) + 32 (count) + 8 (next*) = 104
+// 	movq $104, %rdi
+// 	// call malloc
+// 	call malloc
+// 	// move result of malloc, i.e. %rax, into %rcx
+// 	movq %rax, %rcx
+// 	// {copy word to entry->word, which is first part of word entry}
+// 		// to do so, move entry.word to rdi
+// 	movq %rcx, %rdi
+// 		// and s to rsi
+// 	movq %r12, %s
+// 	call wc_str_copy
+// 	// {set count of wordEntry to 0}; count is 40 bits away from end
+// 	movl $0, (leaq(%rcx, 64)) // caution: moving 4 bytes? is there any potential issues?
+// 	// {set next of the wordEntry. next is the last part of word entry and 8 bits away from ending
+// 	movq %r14, leaq(%rcx, 64 + 32)
+// 	// set inserted param value to 1. (3rd param)
+// 	movq $1, (%r13)
+// 	// copy entry to rax
+// 	movq %rcx, %rax
+// .LrestoreCalleeValuesAndReturn:
+// 	popq %r14
+// 	popq %r13
+// 	popq %r12
+// 	popq %rcx
+// 	popq %rdx
+// 	addq $8, %rsp
+// 	ret
+// 
 /*
  * Find or insert the WordEntry object for the given string (s), returning
  * a pointer to it. The head of the linked list which contains (or should
