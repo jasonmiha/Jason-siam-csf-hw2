@@ -421,72 +421,59 @@ wc_trim_non_alpha:
  */
 	.globl wc_find_or_insert
 wc_find_or_insert:
- 	/* TODO: implement */
- 	subq $8, %rsp // align stack ptr
- 	pushq %rbx // saving callee-saved register %rbx = itr 
- 	pushq %rcx // saving callee-saved register %rcx = entry
- 	pushq %r12 // saving callee-saved register %r12 = s
- 	pushq %r13 // saving callee-sasved register %13 = inserted address
- 	pushq %r14 // saving callee-saved register %r14 = head ptr
- 	movq %rdi, %r14 // saving head pointer
- 	movq %rdx, %r13 // saving pointer of inserted to r13
- 	movq %rsi, %r12 // saving pointer s to r12
- 	movq %rdi, %rbx // save address of head pointer to itr pointer variable
+ 	subq $8, %rsp // Align stack ptr
+ 	pushq %rbx // Saving callee-saved register %rbx = itr 
+ 	pushq %rcx // Saving callee-saved register %rcx = entry
+ 	pushq %r12 // Saving callee-saved register %r12 = s
+ 	pushq %r13 // Saving callee-saved register %r13 = inserted address
+ 	pushq %r14 // Saving callee-saved register %r14 = head ptr
+ 	movq %rdi, %r14 // Saving head pointer
+ 	movq %rdx, %r13 // Saving pointer of inserted to r13
+ 	movq %rsi, %r12 // Saving pointer s to r12
+ 	movq %rdi, %rbx // Save address of head pointer to itr pointer variable
  .LwhileElementsInList:
- 	cmpq $0, %rbx // check if itr is null
- 	je .LendOfList // if itr at end, we're at end of list and can terminate
- 	// put itr.word into rdi // itr.word is first part of struct
- 	movq %rbx, %rdi
- 	// put s into rsi
- 	movq %r12, %rsi
- 	// set iterator to next element // itr is pointer to struct, so beginning address of it should be at 64 + 4 + 4 (padding)
- 	leaq 72(%rbx), %rbx // get memory address of where next pointer is stored
-	movq (%rbx), %rbx // get actual next itr ptr
-	// addq $72, %rbx  
-	// call wc_str_compare // TODO: adjust stack ptr before calling
- 	// subq $8, %rsp
-	call wc_str_compare
- 	//addq $8, %rsp
- 	// check if rax is 0
+	cmpq $0, %rbx // Check if itr is null
+ 	je .LendOfList // If itr at end, we're at end of list and can terminate
+ 	// Continue with for loop
+	movq %rbx, %rdi // Save itr->word to 1st param for string comparison
+ 	movq %r12, %rsi // Save s to 2nd param for string comparison
+
+	call wc_str_compare // Check if itr->word is equal to s
+
  	cmpq $0, %rax
- 	// if not 0, jump to top again
- 	jne .LwhileElementsInList
- 	// else:
- 		// set value of inserted to 0
- 	movq $0, (%r13)
- 		// store itr to rax
- 	leaq -72(%rbx), %rbx
-	movq %rbx, %rax
-	// subq $72, %rbx
+ 	// If not equal, increment ptr and repeat loop
+	jne .LincrementPtrAndRepeat
+ 	// If strings are equal:
+ 	movq $0, (%r13) // Set value of inserted to 0
+	movq %rbx, %rax // Save itr to return 
  	jmp .LrestoreCalleeValuesAndReturn 
+
+.LincrementPtrAndRepeat:
+ 	// Set iterator to next element; itr is pointer to struct, so beginning address of next
+	// should be at 64 (word) + 4 (count) + 4 (padding) = 72
+	leaq 72(%rbx), %rbx // Get memory address of where next pointer is stored
+	movq (%rbx), %rbx // Get actual next itr ptr and save it as such
+ 	jmp .LwhileElementsInList
+	
  .LendOfList:
- 	// move sizeof WordEntry into rdi // 64 (word) + 4 (count) + 4 (padding) + 8 (next pointer) = 80
- 	movq $80, %rdi
- 	// call malloc
- 	call malloc
- 	// move result of malloc, i.e. %rax, into %rcx
- 	movq %rax, %rcx // rcx is now new entry pointer
- 	// {copy word to entry->word, which is first part of word entry}
- 		// to do so, move entry.word to rdi
- 	movq %rcx, %rdi
- 		// and s to rsi
- 	movq %r12, %rsi
- 	call wc_str_copy
- 	// {set count of wordEntry to 0}; count is 40 bits away from end
- 	movl $0, 64(%rcx) // caution: moving 4 bytes? is there any potential issues?
- 	// {set next of the wordEntry. next is the last part of word entry and 8 bits away from ending
- 	movq %r14, 72(%rcx) // 72 bytes cuz 64 bytes from word, 4 bytes from count + 4 padding to make it multiple of 8
- 	// set inserted param value to 1. (3rd param)
- 	movq $1, (%r13)
- 	// copy entry to rax
- 	movq %rcx, %rax
+ 	movq $80, %rdi // Move sizeof(struct WordEntry) = 80 (64 word, 4 count, 4 padding, 8 next ptr) to %rdi
+ 	call malloc // Allocate memory of size 80
+ 	movq %rax, %rcx // Store ptr returned by malloc to rcx, which is now the entry pointer
+	// Copy word to entry->word
+ 	movq %rcx, %rdi // Save entry->word to rdi
+ 	movq %r12, %rsi // Save s to rsi
+ 	call wc_str_copy // Copy s to entry->word
+ 	movl $0, 64(%rcx) // Set count of entry to 0 
+ 	movq %r14, 72(%rcx) // Set next WordEntry ptr of entry to head
+ 	movq $1, (%r13) // Set inserted value to 1
+ 	movq %rcx, %rax // Save entry to return variable
  .LrestoreCalleeValuesAndReturn:
- 	popq %r14
- 	popq %r13
- 	popq %r12
- 	popq %rcx
- 	popq %rdx
- 	addq $8, %rsp
+ 	popq %r14 // Restoring callee-saved register %rbx
+ 	popq %r13 // Restoring callee-saved register %rcx
+ 	popq %r12 // Restoring callee-saved register %r12
+ 	popq %rcx // Restoring callee-saved register %r13
+ 	popq %rdx // Restoring callee-saved register %r14
+ 	addq $8, %rsp // Align stack ptr
  	ret
  
 /*
@@ -514,7 +501,25 @@ wc_dict_find_or_insert:
  */
 	.globl wc_free_chain
 wc_free_chain:
-	/* TODO: implement */
+	subq $8, %rsp
+	pushq %r15 // Save callee register r15 = itr
+	pushq %r14 // Save callee register r14 = prev
+	movq %rdi, %r15 // Set value of r15
+	movq $0, %r14 // Set value of r14
+// While elements left
+.LfreeChainWhileElementsInChain:
+	cmpq $0, %r15 // Check if itr is null
+	je .LfreeChainRestoreCalleeSavedRegistersAndReturn // If null, jump outside loop
+	movq %r15, %r14 // Copy itr to prev
+	// Set next itr
+	leaq 72(%r15), %r15 // Get memory address of where next pointer is stored
+	movq (%r15), %r15 // Set next itr
+	movq %r14, %rdi // Store prev to rdi
+	call free
+	jmp .LfreeChainWhileElementsInChain // Repeat loop
+.LfreeChainRestoreCalleeSavedRegistersAndReturn:
+	popq %r14
+	popq %r15
 	ret
 
 /*

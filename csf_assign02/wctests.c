@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
   // TEST(test_trim_non_alpha);
   TEST(test_find_or_insert);
   // TEST(test_dict_find_or_insert);
-  // TEST(test_free_chain);
+  TEST(test_free_chain);
 
   TEST_FINI();
 }
@@ -217,7 +217,6 @@ void test_find_or_insert(TestObjs *objs) {
   list = p;
   ASSERT(p != NULL);
   ASSERT(0 == strcmp("avis", (const char *) p->word));
-  printf("This is the wordEntry word: %s", (const char *) p->word);
   ASSERT(0 == p->count);
   ++p->count;
 
@@ -229,9 +228,7 @@ void test_find_or_insert(TestObjs *objs) {
   ASSERT(0 == p->count);
   ++p->count;
 
-  printf("Inserted before: %d", inserted);
   p = wc_find_or_insert(list, (const unsigned char *) "avis", &inserted);
-  printf("Inserted after: %d", inserted);
   ASSERT(0 == inserted);
   ASSERT(p != NULL);
   ASSERT(0 == strcmp("avis", (const char *) p->word));

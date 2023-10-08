@@ -193,12 +193,10 @@ struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char 
       return itr;
     }
   }
-  // printf("Size of word entry is: %ld", sizeof(struct WordEntry));
   struct WordEntry *entry = malloc(sizeof(struct WordEntry));
   wc_str_copy(entry->word, s);
   entry->count = 0;
   entry->next = head;
-  // head = entry;
   *inserted = 1;
   return entry;
 }
