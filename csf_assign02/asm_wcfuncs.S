@@ -227,38 +227,58 @@ wc_isalpha:
 	.globl wc_readnext
 wc_readnext:
 
-	.Lread:
-		mov $0, %r10
+	subq $8, %rsp
+	mov $0, %r8				/* counter */
 
-		# Read a character from the input stream
-		movq $0, %rbx          # Clear rbx
-		movq $3, %rax          # syscall number for read
-		leaq (%rdi, %r10), %rdi # Calculate the address of the next character in the buffer
-		movq $1, %rdx          # Number of bytes to read
+	.Lskip_whitespace:		/* skipping whitespace */
 
-		# Use the read system call to read a character into %rbx
-		syscall
+		pushq %rdi
+		call fgetc			/* get next character */
+		popq %rdi
 
-		cmp $0, %al			/* if null terminator, done */
+		cmp $3, %al			/* if EOF, done */
 		je .Ldone
-		call wc_isspace		/* if not whitespace, continue reading the word */
-		cmp $1, %rax
-		jne .Lnot_space
-		cmp $0, %ecx		/* Check if we have read any characters */
-		je .Lread			/* If not, skip whitespace and continue reading */
 
-	.Lnot_space:
-		cmp $MAX_WORDLEN, %ecx
-		jae .Ldone
-		inc %ecx
-		mov %al, (%rsi, %rcx)
-		inc %rdi
+		pushq %rdi
+		mov %rax, %rdi
+		movb %al, %r9b
+		call wc_isspace
+		popq %rdi
+		cmp $1, %rax		/* if whitespace, continue skipping */
+		je .Lskip_whitespace
+
+	.Lread:
+		cmp $1, %rax		/* if whitespace, done */
+		je .Ldone
+
+		cmp $63, %r8		/* if max wordlen read, done */
+		je .Ldone
+
+		movb %r9b, (%rsi, %r8)	/* move character to array */
+		inc %r8
+
+		pushq %rdi
+		call fgetc				/* get next character */
+		mov %rax, %rdi
+		movb %al, %r9b
+
+		call wc_isspace
+		popq %rdi
 		jmp .Lread
 
 	.Ldone:
-		mov $0, (%rsi, %rcx)
-		mov $1, %edx 		/* word reading success */
+		cmp $0, %r8
+		je .Lunsuccessful
+		movb $0, (%rsi, %r8)	/* add null terminator */
+		mov $1, %rax 		/* word reading success */
+		addq $8, %rsp
 		ret
+
+	.Lunsuccessful:
+		mov $0, %rax
+		addq $8, %rsp
+		ret
+
 
 
 /*
