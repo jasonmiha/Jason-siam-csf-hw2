@@ -73,7 +73,8 @@ wc_hash:
 
 	.globl wc_str_compare
 wc_str_compare:
-	subq $8, %rsp /* adjust stack pointer */	pushq %r12
+	subq $8, %rsp /* adjust stack pointer */	
+	pushq %r12
 	pushq %r13
 	movq %rdi, %r12 /* copy first param into register for comparison later on */ 
 	movq %rsi, %r13 /* copy second param into register for comparison later on */
@@ -439,8 +440,8 @@ wc_find_or_insert:
  	// put s into rsi
  	movq %r12, %rsi
  	// set iterator to next element // itr is pointer to struct, so beginning address of it should be at 64 + 4 + 4 (padding)
- 	leaq 72(%rbx), %rbx // get memory address of next pointer
-	movq (%rbx), %rbx // get actual next itr
+ 	leaq 72(%rbx), %rbx // get memory address of where next pointer is stored
+	movq (%rbx), %rbx // get actual next itr ptr
 	// addq $72, %rbx  
 	// call wc_str_compare // TODO: adjust stack ptr before calling
  	// subq $8, %rsp
