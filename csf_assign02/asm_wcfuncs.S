@@ -520,6 +520,7 @@ wc_free_chain:
 .LfreeChainRestoreCalleeSavedRegistersAndReturn:
 	popq %r14
 	popq %r15
+	addq $8, %rsp
 	ret
 
 /*
