@@ -211,7 +211,6 @@ struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char 
 struct WordEntry *wc_dict_find_or_insert(struct WordEntry *buckets[], unsigned num_buckets, const unsigned char *s)
 {
   int index = wc_hash(s) % num_buckets;
-  // printf("index is %d", index);
   int inserted;
   buckets[index] = wc_find_or_insert(buckets[index], s, &inserted);
   return buckets[index];
