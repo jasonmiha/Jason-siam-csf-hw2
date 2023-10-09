@@ -490,7 +490,19 @@ wc_find_or_insert:
  */
 	.globl wc_dict_find_or_insert
 wc_dict_find_or_insert:
-	
+	subq $8, %rsp // Align stack ptr
+	pushq %r12 // Saving callee-saved register %r12 = s
+	movq %rdx, %r12 // Saving pointer s to r12
+
+	call wc_hash
+	divq %rsi
+
+	leaq (%rdi, %rdx, 8), %rdi
+	movq (%rdi), %rdi
+	call wc_find_or_insert
+	movq %rax, (%rdi)
+	popq %r12 // Restoring callee-saved register %r12
+	addq $8, %rsp // Restore stack ptr
 	ret
 
 /*
