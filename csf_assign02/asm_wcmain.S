@@ -24,11 +24,12 @@ main:
 	
 	cmpq $1, %rdi // Check if argc is 1
 	jne .LopenFile
-	movq stdin, %r15 // Set reference of fp to stdin
+	// movq stdin, %r15 // Set reference of fp to stdin
 	jmp .LafterOpenedFile
 
 .LopenFile:
-	
+
+.LafterOpenedFile:
 
 /*
 vim:ft=gas:

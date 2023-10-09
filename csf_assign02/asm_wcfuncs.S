@@ -492,22 +492,8 @@ wc_find_or_insert:
  */
 	.globl wc_dict_find_or_insert
 wc_dict_find_or_insert:
-	// subq $40, %rsp // Align stack ptr
-	// pushq %r12 // Saving callee-saved register %r12 = s
-	// movq %rdx, %r12 // Saving pointer s to r12
-// 
-	// call wc_hash
-	// divq %rsi // rdx:rax
-// 
-	// leaq (%rdi, %rdx, 8), %rdi
-	// movq (%rdi), %rdi
-	// call wc_find_or_insert
-	// movq %rax, (%rdi)
-	// popq %r12 // Restoring callee-saved register %r12
-	// addq $40, %rsp // Restore stack ptr
-	// ret
 	subq $56, %rsp
-	// save all callee saved values and init them
+	// Save all callee saved values and init them
 	pushq %r12 // Saving callee-saved register r12 = buckets
 	pushq %r13 // Saving callee-saved register r13 = num_buckets
 	pushq %r14 // Saving callee-saved register r14 = s
@@ -519,7 +505,7 @@ wc_dict_find_or_insert:
 
 	movq %r14, %rdi // Move s to rdi to pass into wchash
 	call wc_hash // it returns a uint32
-	mov %rax, %r15 // r15 holds wc_hash so store the uint32 as 64 bit in r15
+	movl %eax, %r15d // r15 holds wc_hash which is uint32
 	movq $0, %rdx
 	divq %r13 // Divide rdx:rax by r13
 	// r15 now represents index
