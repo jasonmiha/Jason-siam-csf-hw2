@@ -423,7 +423,7 @@ wc_trim_non_alpha:
  */
 	.globl wc_find_or_insert
 wc_find_or_insert:
- 	subq $40, %rsp // Align stack ptr
+ 	subq $48, %rsp // Align stack ptr
  	pushq %rbx // Saving callee-saved register %rbx = itr 
  	pushq %rcx // Saving callee-saved register %rcx = entry
  	pushq %r12 // Saving callee-saved register %r12 = s
@@ -435,7 +435,9 @@ wc_find_or_insert:
  	movq %rdi, %rbx // Save address of head pointer to itr pointer variable
  .LwhileElementsInList:
 	cmpq $0, %rbx // Check if itr is null
- 	je .LendOfList // If itr at end, we're at end of list and can terminate
+	je .LendOfList // If itr at end, we're at end of list and can terminate
+	// cmpq $0, (%rbx) // Check if itr is null
+	// je .LendOfList // If itr at end, we're at end of list and can terminate
  	// Continue with for loop
 	movq %rbx, %rdi // Save itr->word to 1st param for string comparison
  	movq %r12, %rsi // Save s to 2nd param for string comparison
@@ -474,8 +476,8 @@ wc_find_or_insert:
  	popq %r13 // Restoring callee-saved register %rcx
  	popq %r12 // Restoring callee-saved register %r12
  	popq %rcx // Restoring callee-saved register %r13
- 	popq %rdx // Restoring callee-saved register %r14
- 	addq $40, %rsp // Align stack ptr
+ 	popq %rbx // Restoring callee-saved register %r14
+ 	addq $48, %rsp // Align stack ptr
  	ret
  
 /*
@@ -492,37 +494,41 @@ wc_find_or_insert:
  */
 	.globl wc_dict_find_or_insert
 wc_dict_find_or_insert:
-	subq $56, %rsp
 	// Save all callee saved values and init them
+	// all my pushes are 5 which is also an odd multiple of 8... so odd multiple plus odd multiple is even multiple
 	pushq %r12 // Saving callee-saved register r12 = buckets
 	pushq %r13 // Saving callee-saved register r13 = num_buckets
 	pushq %r14 // Saving callee-saved register r14 = s
 	pushq %r15 // Saving callee-saved register r15 => temporary values
-	pushq %rbx // Saving callee-saved register rbx = inserted
+	pushq %rbp // Saving callee-saved register rbp = inserted
 	movq %rdi, %r12 // Store buckets in r12
 	movq %rsi, %r13 // Store num_buckets in r13
 	movq %rdx, %r14 // Save s in r14
+	subq $16, %rsp // this is odd multiple of 8 // now its even multiple; i fixed it?
+	movq %rsp, %rbp // Assign address of inserted to rbx
+	movq $0, (%rbp) // Init inserted with value 0 // It is not a value of 0
 
 	movq %r14, %rdi // Move s to rdi to pass into wchash
 	call wc_hash // it returns a uint32
-	movl %eax, %r15d // r15 holds wc_hash which is uint32
+	movl %eax, %r15d // r15 holds wc_hash which is uint32 // !PROBLEM SPOTTED: index is wrong value which makes the thing access wrong index and messes up everything
+	movslq %r15d, %rax
 	movq $0, %rdx
 	divq %r13 // Divide rdx:rax by r13
 	// r15 now represents index
 	movq %rdx, %r15 // Store remainder of division to r15
-	leaq (%rbx), %rbx // Store pointer of rbx to itself ! Problem, cuz address is 0...
-	leaq (%r12, %r13, 8), %rdi // Store address of buckets[index] into first param
+	// leaq %rbp, %rbp // Store pointer of rbx to itself ! Problem, cuz address is 0...
+	leaq (%r12, %r15, 8), %rdi // Store address of buckets[index] into first param
 	// Note I might need to do movq (%rdi), %rdi
-	 // movq (%rdi), %rdi
+	// movq (%rdi), %rdi
 	movq %r14, %rsi // Move s to rsi
-	movq %rbx, %rdx
-	call wc_dict_find_or_insert
-	pushq %rbx // Saving callee-saved register rbx = inserted
+	movq %rbp, %rdx // Move inserted variable pointer to rdx (3rd param)
+	call wc_find_or_insert
+	pushq %rbp // Saving callee-saved register rbx = inserted
 	pushq %r15 // Saving callee-saved register r15 => temporary values
 	pushq %r14 // Saving callee-saved register r14 = s
 	pushq %r13 // Saving callee-saved register r13 = num_buckets
 	pushq %r12 // Saving callee-saved register r12 = buckets
-	addq $56, %rsp
+	addq $16, %rsp
 	ret
 
 /*
