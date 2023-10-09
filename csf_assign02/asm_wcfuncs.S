@@ -73,7 +73,7 @@ wc_hash:
 
 	.globl wc_str_compare
 wc_str_compare:
-	subq $8, %rsp /* adjust stack pointer */	
+	subq $24, %rsp /* adjust stack pointer */	
 	pushq %r12
 	pushq %r13
 	movq %rdi, %r12 /* copy first param into register for comparison later on */ 
@@ -95,13 +95,13 @@ wc_str_compare:
 	movq $-1, %rax /* copy -1 to return register */
 	popq %r13
 	popq %r12
-	addq $8, %rsp /* adjust stack pointer */
+	addq $24, %rsp /* adjust stack pointer */
 	ret
 .LfirstParamGreaterThan:
 	movq $1, %rax /* copy 1 to return register */
 	popq %r13
 	popq %r12
-	addq $8, %rsp /* adjust stack pointer */
+	addq $24, %rsp /* adjust stack pointer */
 	ret
 .LfirstParamIsNullTerminator:
 	cmpb $0, (%r13) /* check if 2nd param is also null terminator */
@@ -109,7 +109,7 @@ wc_str_compare:
 	movq $0, %rax /* if second param is null terminator, then both strings are equal, so copy 0 to return register */
 	popq %r13
 	popq %r12
-	addq $8, %rsp /* adjust stack pointer */
+	addq $24, %rsp /* adjust stack pointer */
 	ret
 .LsecondParamIsNullTerminator:
 	cmpb $0, (%r12) /* check if 1st param is also null terminator */
@@ -117,7 +117,7 @@ wc_str_compare:
 	movq $0, %rax /* if second param is also a null terminator, then both strings are equal so copy 0 to return register */
 	popq %r13
 	popq %r12
-	addq $8, %rsp /* adjust stack pointer */
+	addq $24, %rsp /* adjust stack pointer */
 	ret
 	
 /*
@@ -237,7 +237,7 @@ wc_isalpha:
 	.globl wc_readnext
 wc_readnext:
 
-	subq $8, %rsp
+	subq $40, %rsp
 	pushq %r12
 	movq $0, %r8				/* counter */
 	movq %rsi, %r12
@@ -254,9 +254,9 @@ wc_readnext:
 		pushq %rdi
 		movq %rax, %rdi
 		movb %al, %r9b
-		subq $8, %rsp
+		// subq $8, %rsp
 		call wc_isspace
-		addq $8, %rsp
+		// addq $8, %rsp
 		popq %rdi
 		cmp $1, %rax		/* if whitespace, continue skipping */
 		je .Lskip_whitespace
@@ -292,13 +292,13 @@ wc_readnext:
 		movb $0, (%r12, %r8)	/* add null terminator */
 		mov $1, %rax 			/* word reading success */
 		popq %r12
-		addq $8, %rsp
+		addq $40, %rsp
 		ret
 
 	.Lunsuccessful:
 		mov $0, %rax
 		popq %r12
-		addq $8, %rsp
+		addq $40, %rsp
 		ret
 
 
@@ -415,7 +415,7 @@ wc_trim_non_alpha:
  */
 	.globl wc_find_or_insert
 wc_find_or_insert:
- 	subq $8, %rsp // Align stack ptr
+ 	subq $40, %rsp // Align stack ptr
  	pushq %rbx // Saving callee-saved register %rbx = itr 
  	pushq %rcx // Saving callee-saved register %rcx = entry
  	pushq %r12 // Saving callee-saved register %r12 = s
@@ -467,7 +467,7 @@ wc_find_or_insert:
  	popq %r12 // Restoring callee-saved register %r12
  	popq %rcx // Restoring callee-saved register %r13
  	popq %rdx // Restoring callee-saved register %r14
- 	addq $8, %rsp // Align stack ptr
+ 	addq $40, %rsp // Align stack ptr
  	ret
  
 /*
@@ -484,19 +484,51 @@ wc_find_or_insert:
  */
 	.globl wc_dict_find_or_insert
 wc_dict_find_or_insert:
-	subq $8, %rsp // Align stack ptr
-	pushq %r12 // Saving callee-saved register %r12 = s
-	movq %rdx, %r12 // Saving pointer s to r12
+	// subq $40, %rsp // Align stack ptr
+	// pushq %r12 // Saving callee-saved register %r12 = s
+	// movq %rdx, %r12 // Saving pointer s to r12
+// 
+	// call wc_hash
+	// divq %rsi // rdx:rax
+// 
+	// leaq (%rdi, %rdx, 8), %rdi
+	// movq (%rdi), %rdi
+	// call wc_find_or_insert
+	// movq %rax, (%rdi)
+	// popq %r12 // Restoring callee-saved register %r12
+	// addq $40, %rsp // Restore stack ptr
+	// ret
+	subq $56, %rsp
+	// save all callee saved values and init them
+	pushq %r12 // Saving callee-saved register r12 = buckets
+	pushq %r13 // Saving callee-saved register r13 = num_buckets
+	pushq %r14 // Saving callee-saved register r14 = s
+	pushq %r15 // Saving callee-saved register r15 => temporary values
+	pushq %rbx // Saving callee-saved register rbx = inserted
+	movq %rdi, %r12 // Store buckets in r12
+	movq %rsi, %r13 // Store num_buckets in r13
+	movq %rdx, %r14 // Save s in r14
 
-	call wc_hash
-	divq %rsi
-
-	leaq (%rdi, %rdx, 8), %rdi
-	movq (%rdi), %rdi
-	call wc_find_or_insert
-	movq %rax, (%rdi)
-	popq %r12 // Restoring callee-saved register %r12
-	addq $8, %rsp // Restore stack ptr
+	movq %r14, %rdi // Move s to rdi to pass into wchash
+	call wc_hash // it returns a uint32
+	mov %rax, %r15 // r15 holds wc_hash so store the uint32 as 64 bit in r15
+	movq $0, %rdx
+	divq %r13 // Divide rdx:rax by r13
+	// r15 now represents index
+	movq %rdx, %r15 // Store remainder of division to r15
+	leaq (%rbx), %rbx // Store pointer of rbx to itself ! Problem, cuz address is 0...
+	leaq (%r12, %r13, 8), %rdi // Store address of buckets[index] into first param
+	// Note I might need to do movq (%rdi), %rdi
+	 // movq (%rdi), %rdi
+	movq %r14, %rsi // Move s to rsi
+	movq %rbx, %rdx
+	call wc_dict_find_or_insert
+	pushq %rbx // Saving callee-saved register rbx = inserted
+	pushq %r15 // Saving callee-saved register r15 => temporary values
+	pushq %r14 // Saving callee-saved register r14 = s
+	pushq %r13 // Saving callee-saved register r13 = num_buckets
+	pushq %r12 // Saving callee-saved register r12 = buckets
+	addq $56, %rsp
 	ret
 
 /*
@@ -507,7 +539,7 @@ wc_dict_find_or_insert:
  */
 	.globl wc_free_chain
 wc_free_chain:
-	subq $8, %rsp
+	subq $24, %rsp
 	pushq %r15 // Save callee register r15 = itr
 	pushq %r14 // Save callee register r14 = prev
 	movq %rdi, %r15 // Set value of r15
@@ -526,7 +558,7 @@ wc_free_chain:
 .LfreeChainRestoreCalleeSavedRegistersAndReturn:
 	popq %r14
 	popq %r15
-	addq $8, %rsp
+	addq $24, %rsp
 	ret
 
 /*

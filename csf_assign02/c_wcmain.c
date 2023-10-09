@@ -13,10 +13,9 @@ int main(int argc, char **argv)
   const unsigned char *best_word = (const unsigned char *)"";
   uint32_t best_word_count = 0;
 
-  struct WordEntry ** buckets = malloc(sizeof(struct WordEntry*) * HASHTABLE_SIZE);
-  for (int i = 0; i < HASHTABLE_SIZE; i++) {
-    buckets[i] = NULL;
-  }
+  // for (int i = 0; i < HASHTABLE_SIZE; i++) {
+  //   buckets[i] = NULL;
+  // }
 
   FILE *fp;
   if (argc == 1)
@@ -32,6 +31,7 @@ int main(int argc, char **argv)
       return 2;
     }
   }
+  struct WordEntry ** buckets = malloc(sizeof(struct WordEntry*) * HASHTABLE_SIZE);
 
   unsigned char word[MAX_WORDLEN + 1];
   while (wc_readnext(fp, word) == 1)
