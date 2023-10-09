@@ -490,7 +490,7 @@ wc_find_or_insert:
  */
 	.globl wc_dict_find_or_insert
 wc_dict_find_or_insert:
-	/* TODO: implement */
+	
 	ret
 
 /*
