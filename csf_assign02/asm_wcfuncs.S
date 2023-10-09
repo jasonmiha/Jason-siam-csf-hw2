@@ -237,27 +237,29 @@ wc_isalpha:
 	.globl wc_readnext
 wc_readnext:
 
-	subq $8, %rsp
-	pushq %r12
-	movq $0, %r8				/* counter */
-	movq %rsi, %r12
+	subq $40, %rsp
+
+	pushq %rbx // Saving callee-saved register %rbx = curr char
+ 	pushq %r13 // Saving callee-saved register %r13 = value of rdi
+	pushq %r14 // Saving callee-saved register %r14 = counter
+	pushq %r15 // Saving callee-saved register %r15 = string
+
+	movq $0, %r14				/* counter */
+	movq %rdi, %r13
+	movq %rsi, %r15
 
 	.Lskip_whitespace:		/* skipping whitespace */
 
-		pushq %rdi
+		movq %r13, %rdi
 		call fgetc			/* get next character */
-		popq %rdi
 
 		cmpb $-1, %al			/* if EOF, done */
 		je .Ldone
 
-		pushq %rdi
-		movq %rax, %rdi
-		movb %al, %r9b
-		subq $8, %rsp
+		movb %al, %dil
+		mov %rax, %rdi
+		movb %al, %bl
 		call wc_isspace
-		addq $8, %rsp
-		popq %rdi
 		cmp $1, %rax		/* if whitespace, continue skipping */
 		je .Lskip_whitespace
 
@@ -265,40 +267,46 @@ wc_readnext:
 		cmp $1, %rax		/* if whitespace, done */
 		je .Ldone
 
-		cmp $63, %r8		/* if max wordlen read, done */
+		cmp $63, %r14		/* if max wordlen read, done */
 		je .Ldone
 
-		movb %r9b, (%r12, %r8)	/* move character to array */
-		inc %r8
+		mov %rbx, (%r15, %r14)	/* move character to array */
+		inc %r14
 
-		pushq %rdi
+		movq %r13, %rdi
 		call fgetc				/* get next character */
+		movb %al, %bl
 		mov %rax, %rdi
-		movb %al, %r9b
 
-		cmpb $-1, %al			/* if EOF, done */
+		cmpb $-1, %bl			/* if EOF, done */
 		je .Ldone
 
-		cmpb $0, %al			/* if EOF, done */
+		cmpb $0, %bl			/* if EOF, done */
 		je .Ldone
-
 		call wc_isspace
-		popq %rdi
 		jmp .Lread
 
 	.Ldone:
-		cmp $0, %r8				/* if 0 characters read, unsuccessful */
+		cmp $0, %r14				/* if 0 characters read, unsuccessful */
 		je .Lunsuccessful
-		movb $0, (%r12, %r8)	/* add null terminator */
-		mov $1, %rax 			/* word reading success */
-		popq %r12
-		addq $8, %rsp
+		movb $0, (%r15, %r14)				/* add null terminator */
+		mov $1, %rax 				/* word reading success */
+
+		popq %r15 // Restoring callee-saved register %r15 = string
+		popq %r14 // Restoring callee-saved register %r14 = counter
+		popq %r13 // Restoring callee-saved register %r13 = value of rdi
+		popq %rbx // Restoring callee-saved register %rbx = curr char
+		addq $40, %rsp
 		ret
 
 	.Lunsuccessful:
 		mov $0, %rax
-		popq %r12
-		addq $8, %rsp
+
+		popq %r15 // Restoring callee-saved register %r15 = string
+		popq %r14 // Saving callee-saved register %r14 = counter
+		popq %r13 // Restoring callee-saved register %r13 = value of rdi
+		popq %rbx // Saving callee-saved register %rbx = curr char
+		addq $40, %rsp
 		ret
 
 

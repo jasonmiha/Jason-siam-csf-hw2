@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
   TEST(test_str_copy);
   TEST(test_isspace);
   TEST(test_isalpha);
-  // TEST(test_readnext);
+  TEST(test_readnext);
   TEST(test_tolower);
   TEST(test_trim_non_alpha);
   TEST(test_find_or_insert);
@@ -71,7 +71,7 @@ TestObjs *setup(void) {
 
   objs->test_str_1_copy = (const unsigned char *) "hello";
 
-  objs->words_1 = (const unsigned char *) "A strong smell of petroleum prevails throughout.";
+  objs->words_1 = (const unsigned char *) "   A strong smell of petroleum prevails throughout.";
 
   //printf("%u\n", wc_hash("Burris"));
   //printf("%u\n", wc_hash("Burt's"));
@@ -179,7 +179,6 @@ void test_readnext(TestObjs *objs) {
   ASSERT(0 == strcmp("prevails", (const char *) buf));
 
   ASSERT(1 == wc_readnext(in, buf));
-  printf("%s\n", buf);
   ASSERT(0 == strcmp("throughout.", (const char *) buf));
 
   ASSERT(0 == wc_readnext(in, buf));
