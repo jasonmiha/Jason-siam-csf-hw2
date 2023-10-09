@@ -239,22 +239,20 @@ wc_readnext:
 
 	subq $8, %rsp
 	pushq %r12
-	mov $0, %r8				/* counter */
-	mov %rsi, %r12
+	movq $0, %r8				/* counter */
+	movq %rsi, %r12
 
 	.Lskip_whitespace:		/* skipping whitespace */
 
 		pushq %rdi
-		subq $8, %rsp
 		call fgetc			/* get next character */
-		addq $8, %rsp
 		popq %rdi
 
-		cmp $-1, %al			/* if EOF, done */
+		cmpb $-1, %al			/* if EOF, done */
 		je .Ldone
 
 		pushq %rdi
-		mov %rax, %rdi
+		movq %rax, %rdi
 		movb %al, %r9b
 		subq $8, %rsp
 		call wc_isspace
@@ -274,21 +272,17 @@ wc_readnext:
 		inc %r8
 
 		pushq %rdi
-		subq $8, %rsp
 		call fgetc				/* get next character */
-		addq $8, %rsp
 		mov %rax, %rdi
 		movb %al, %r9b
 
-		cmp $-1, %al			/* if EOF, done */
+		cmpb $-1, %al			/* if EOF, done */
 		je .Ldone
 
-		cmp $0, %al			/* if EOF, done */
+		cmpb $0, %al			/* if EOF, done */
 		je .Ldone
 
-		subq $8, %rsp
 		call wc_isspace
-		addq $8, %rsp
 		popq %rdi
 		jmp .Lread
 
