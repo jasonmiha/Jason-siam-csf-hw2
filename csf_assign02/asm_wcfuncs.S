@@ -538,7 +538,7 @@ wc_dict_find_or_insert:
    movq %rsi, %r13
    movq %rdx, %r14
    
-   movq %r14, %r12
+   movq %r14, %rdi
    call wc_hash
    xorl %edx, %edx
    divl %r13d
