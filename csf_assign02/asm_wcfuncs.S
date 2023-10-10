@@ -243,23 +243,22 @@ wc_readnext:
 	pushq %r15 // Saving callee-saved register %r15 = string
 
 	movq $0, %r14				/* counter */
-	movq %rdi, %r13
+	movq %rdi, %r13				/* save rdi value to be assigned back later */
 	movq %rsi, %r15
 
 	.Lskip_whitespace:		/* skipping whitespace */
 
-		movq %r13, %rdi
+		movq %r13, %rdi		/* reset value of rdi */
 		call fgetc			/* get next character */
 
 		cmpb $-1, %al			/* if EOF, done */
 		je .Ldone
 
-		movb %al, %dil
-		mov %rax, %rdi
-		movb %al, %bl
-		call wc_isspace
-		cmp $1, %rax		/* if whitespace, continue skipping */
-		je .Lskip_whitespace
+		mov %rax, %rdi		/* move char into argument register */
+		movb %al, %bl		/* move char into 8 bit subregister */
+		call wc_isspace		/* if whitespace, continue skipping */
+		cmp $1, %rax		
+		je .Lskip_whitespace	/* loop back to continue skipping whitespace */
 
 	.Lread:
 		cmp $1, %rax		/* if whitespace, done */
@@ -271,17 +270,15 @@ wc_readnext:
 		mov %rbx, (%r15, %r14)	/* move character to array */
 		inc %r14
 
-		movq %r13, %rdi
+		movq %r13, %rdi			/* reset value of rdi */
 		call fgetc				/* get next character */
-		movb %al, %bl
-		mov %rax, %rdi
+		movb %al, %bl			/* move char into 8 bit subregister */
+		mov %rax, %rdi			/* move char into argument register */
 
 		cmpb $-1, %bl			/* if EOF, done */
 		je .Ldone
 
-		cmpb $0, %bl			/* if EOF, done */
-		je .Ldone
-		call wc_isspace
+		call wc_isspace			/* call isspace to be used at top of loop */
 		jmp .Lread
 
 	.Ldone:
@@ -294,7 +291,7 @@ wc_readnext:
 		popq %r14 // Restoring callee-saved register %r14 = counter
 		popq %r13 // Restoring callee-saved register %r13 = value of rdi
 		popq %rbx // Restoring callee-saved register %rbx = curr char
-		addq $40, %rsp
+		addq $40, %rsp // Restoring stack pointer
 		ret
 
 	.Lunsuccessful:
@@ -304,7 +301,7 @@ wc_readnext:
 		popq %r14 // Saving callee-saved register %r14 = counter
 		popq %r13 // Restoring callee-saved register %r13 = value of rdi
 		popq %rbx // Saving callee-saved register %rbx = curr char
-		addq $40, %rsp
+		addq $40, %rsp	// Restoring stack pointer
 		ret
 
 
@@ -346,34 +343,34 @@ wc_tolower:
 	.globl wc_trim_non_alpha
 wc_trim_non_alpha:
 
-	subq $8, %rsp
-	mov $0, %rcx
+	subq $8, %rsp			/* Align stack pointer */
+	mov $0, %rcx			/* Initialize counter to 0 */
 	movq %rdi, %rdx			/* rdx now points to current char */
 
-	.Lfind_end_loop:
+	.Lfind_end_loop:			/* Loop to find position of null terminator */
 		movb (%rdx), %bl		/* copy first char of string into a one byte register */
 		cmp $0, %bl				/* If null terminator, done */
 		je .Ltrim_loop
-		inc %rdx
-		inc %rcx
+		inc %rdx				/* Increment pointer */
+		inc %rcx				/* Increment counter */
 		jmp .Lfind_end_loop
 
-	.Ltrim_loop:
-		decq %rdx
-		dec %rcx
-		movb (%rdx), %bl
-		movzbq %bl, %rdi
+	.Ltrim_loop:				/* Loop to trim non-alpha starting from end */
+		decq %rdx				/* Go back one from null terminator to last char */
+		dec %rcx				/* Decrement counter */
+		movb (%rdx), %bl		/* Move char to 8 bit subregister */
+		movzbq %bl, %rdi		/* Move back into argument register and pad with 0s */
 		subq $8, %rsp
-		call wc_isalpha
+		call wc_isalpha			/* Align stack pointer and call isalpha */
 		addq $8, %rsp
-		cmp $1, %rax
+		cmp $1, %rax			/* If alpha, finish*/
 		je .Lfinish
-		jmp .Ltrim_loop
+		jmp .Ltrim_loop			/* Otherwise keep looping */
 		
 	.Lfinish:
-		incq %rdx
-		movb $0, (%rdx)
-		addq $8, %rsp
+		incq %rdx				/* Go to one past the last character */
+		movb $0, (%rdx)			/* Add null terminator */
+		addq $8, %rsp			/* Restore stack pointer */
 		ret
 
 /*
