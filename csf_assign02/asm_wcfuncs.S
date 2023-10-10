@@ -73,51 +73,51 @@ wc_hash:
 
 	.globl wc_str_compare
 wc_str_compare:
-	subq $24, %rsp /* adjust stack pointer */	
-	pushq %r12
-	pushq %r13
-	movq %rdi, %r12 /* copy first param into register for comparison later on */ 
-	movq %rsi, %r13 /* copy second param into register for comparison later on */
+	subq $24, %rsp // Adjust stack pointer	
+	pushq %r12 // Save callee register r12
+	pushq %r13 // Save callee register r13
+	movq %rdi, %r12 // Copy first param into register for comparison later on 
+	movq %rsi, %r13 // Copy second param into register for comparison later on 
 .LcharsRemaining:
-	cmpb $0, (%r12) /* if first param is null terminator, jump to appropriate label */
+	cmpb $0, (%r12) // If first param is null terminator, jump to appropriate label
 	je .LfirstParamIsNullTerminator
-	cmpb $0, (%r13) /* if second param is null terminator, jump to appropriate label */
+	cmpb $0, (%r13) // If second param is null terminator, jump to appropriate label 
 	je .LsecondParamIsNullTerminator
-	movb (%r12), %dil /* copy first param to %dil register for comparison with second param */
+	movb (%r12), %dil // Copy first param to %dil register for comparison with second param 
 	cmpb %dil, (%r13)
-	jb .LfirstParamGreaterThan /* if first param is greater than second param, jump to appropriate label */
-	ja .LfirstParamLessThan /* if first param is greater than second param, jump to appropriate label */
-	incq %r12 /* increment pointer address to access next char */
-	incq %r13 /* increment pointer address to access next char */
-	jmp .LcharsRemaining /* repeat loop */
+	jb .LfirstParamGreaterThan // If first param is greater than second param, jump to appropriate label
+	ja .LfirstParamLessThan // If first param is greater than second param, jump to appropriate label
+	incq %r12 // Increment pointer address to access next char
+	incq %r13 // Increment pointer address to access next char
+	jmp .LcharsRemaining // Repeat loop
 
 .LfirstParamLessThan:
-	movq $-1, %rax /* copy -1 to return register */
+	movq $-1, %rax // Copy -1 to return register 
 	popq %r13
 	popq %r12
-	addq $24, %rsp /* adjust stack pointer */
+	addq $24, %rsp // Adjust stack pointer 
 	ret
 .LfirstParamGreaterThan:
-	movq $1, %rax /* copy 1 to return register */
+	movq $1, %rax // Copy 1 to return register 
 	popq %r13
 	popq %r12
-	addq $24, %rsp /* adjust stack pointer */
+	addq $24, %rsp // Adjust stack pointer
 	ret
 .LfirstParamIsNullTerminator:
-	cmpb $0, (%r13) /* check if 2nd param is also null terminator */
-	jne .LfirstParamLessThan /* if second param not null terminator, it means rhs string is less than lhs string, so jump to appropriate label to handle that */
-	movq $0, %rax /* if second param is null terminator, then both strings are equal, so copy 0 to return register */
+	cmpb $0, (%r13) // Check if 2nd param is also null terminator 
+	jne .LfirstParamLessThan /* if second param not null terminator, it means rhs string is less than lhs string, so jump to appropriate label to handle that 
+	movq $0, %rax /* if second param is null terminator, then both strings are equal, so copy 0 to return register 
 	popq %r13
 	popq %r12
 	addq $24, %rsp /* adjust stack pointer */
 	ret
 .LsecondParamIsNullTerminator:
-	cmpb $0, (%r12) /* check if 1st param is also null terminator */
-	jne .LfirstParamGreaterThan /* if 1st param not null terminator, it means rhs string is greater than lhs string, so jump to appropriate label  */
-	movq $0, %rax /* if second param is also a null terminator, then both strings are equal so copy 0 to return register */
+	cmpb $0, (%r12) // Check if 1st param is also null terminator */
+	jne .LfirstParamGreaterThan // If 1st param not null terminator, it means rhs string is greater than lhs string, so jump to appropriate label 
+	movq $0, %rax // If second param is also a null terminator, then both strings are equal so copy 0 to return register 
 	popq %r13
 	popq %r12
-	addq $24, %rsp /* adjust stack pointer */
+	addq $24, %rsp // Adjust stack pointer 
 	ret
 	
 /*
@@ -134,13 +134,11 @@ wc_str_copy:
 	cmpb $0, %al // Is it a null terminator
 	je .LdoneCopying // If so, finished copying
 	movb %al, (%rdi) // Copy source char to dest char
-	// movb %r8b, (%rdi)
 	incq %rsi // Increment source pointer
 	incq %rdi // Increment dest pointer
 	jmp .LWhileStillCopyingString
 .LdoneCopying:
-	movb $0, (%rdi) // copy over the null terminator to dest index
-	// movb $'\0', (%rdi)
+	movb $0, (%rdi) // Copy over the null terminator to dest index
 	addq $8, %rsp
 	ret	
 
@@ -198,15 +196,14 @@ wc_isspace:
  */
 .globl wc_isalpha
 wc_isalpha:
-	subq $8, %rsp 			/* adjust stack pointer */
-	cmp  $'A', %rdi
-	jl .Lnot_alpha
-	cmp $'Z', %rdi
-
+	subq $8, %rsp 			/* Adjust stack pointer */
+	cmp  $'A', %rdi 		/* Check if it's >= to A */
+	jl .Lnot_alpha			
+	cmp $'Z', %rdi			/* Check if it's <= to Z */
 	jle .Lis_alpha
-	cmp $'a', %rdi
+	cmp $'a', %rdi			/* Check if it's >= to a */
 	jl .Lnot_alpha
-	cmp  $'z', %rdi
+	cmp  $'z', %rdi			/* Check if it's <= to z */
 	jle .Lis_alpha
 
 .Lnot_alpha:
@@ -218,6 +215,7 @@ wc_isalpha:
  	mov $1, %rax
 	addq $8, %rsp
 	ret
+
 /*
  * Read the next word from given input stream, storing
  * the word in the array pointed-to by w. (This array should be
@@ -322,46 +320,20 @@ wc_readnext:
 wc_tolower:
 	subq $8, %rsp
 .LforLoop:
-	movb (%rdi), %r8b
-	cmpb $0, %r8b // is it a null terminator
-	je .Lloop_done
+	movb (%rdi), %r8b // Store char at rdi to r8b
+	cmpb $0, %r8b // Is it a null terminator
+	je .Lloop_done // If so, finish the function
 	cmpb $65, %r8b // rdi >= 65 (65 is ascii for 'A')
-	jl .LdoesntMeetComp
+	jl .LdoesntMeetComp 
 	cmpb $90, %r8b // rdi <= 90 (90 is ascii for 'Z')
 	jg .LdoesntMeetComp
-	addb $32, %r8b
-	movb %r8b, (%rdi)
+	addb $32, %r8b // Add by 32 to convert to lowercase, in ASCII
+	movb %r8b, (%rdi) 
 .LdoesntMeetComp:
-	incq %rdi
+	incq %rdi // Increment pointer to next char
 	jmp .LforLoop
 .Lloop_done:
 	addq $8, %rsp
-	ret
-
-/* // From example code on Assignment2 Course Site
- * Determine the length of specified character string.
- *
- * Parameters:
- *   s - pointer to a NUL-terminated character string
- *
- * Returns:
- *    number of characters in the string
- */
-	.globl strLen
-strLen:
-	subq $8, %rsp                 /* adjust stack pointer */
-	movq $0, %r10                 /* initial count is 0 */
-
-.LstrLenLoop:
-	cmpb $0, (%rdi)               /* found NUL terminator? */
-	jz .LstrLenDone               /* if so, done */
-	inc %r10                      /* increment count */
-	inc %rdi                      /* advance to next character */
-	jmp .LstrLenLoop              /* continue loop */
-
-.LstrLenDone:
-	movq %r10, %rax               /* return count */
-	addq $8, %rsp                 /* restore stack pointer */
 	ret
 
 /*
@@ -436,8 +408,6 @@ wc_find_or_insert:
  .LwhileElementsInList:
 	cmpq $0, %rbx // Check if itr is null
 	je .LendOfList // If itr at end, we're at end of list and can terminate
-	// cmpq $0, (%rbx) // Check if itr is null
-	// je .LendOfList // If itr at end, we're at end of list and can terminate
  	// Continue with for loop
 	movq %rbx, %rdi // Save itr->word to 1st param for string comparison
  	movq %r12, %rsi // Save s to 2nd param for string comparison
@@ -453,15 +423,11 @@ wc_find_or_insert:
  	jmp .LrestoreCalleeValuesAndReturn 
 
 .LincrementPtrAndRepeat:
- 	// Set iterator to next element; itr is pointer to struct, so beginning address of next
-	// should be at 64 (word) + 4 (count) + 4 (padding) = 72
-	//leaq 72(%rbx), %rbx // Get memory address of where next pointer is stored
-	//movq (%rbx), %rbx // Get actual next itr ptr and save it as such
+ 	// Set iterator to next element; itr is pointer to struct, so it's at beginning address of next
  	movq WORDENTRY_NEXT_OFFSET(%rbx), %rbx
 	jmp .LwhileElementsInList
 	
  .LendOfList:
- 	movq $1, (%r13) // Set inserted value to 1
  	movq $80, %rdi // Move sizeof(struct WordEntry) = 80 (64 word, 4 count, 4 padding, 8 next ptr) to %rdi
  	call malloc // Allocate memory of size 80
  	movq %rax, %rbp // Store ptr returned by malloc to rbp, which is now the entry pointer
@@ -472,6 +438,7 @@ wc_find_or_insert:
  	movq %r12, %rsi // Save s to rsi
  	call wc_str_copy // Copy s to entry->word
  	movq %rbp, %rax // Save entry to return variable
+ 	movq $1, (%r13) // Set inserted value to 1
  .LrestoreCalleeValuesAndReturn:
  	popq %r14 // Restoring callee-saved register %r14
  	popq %r13 // Restoring callee-saved register %r13
@@ -495,75 +462,45 @@ wc_find_or_insert:
  */
 .globl wc_dict_find_or_insert
 wc_dict_find_or_insert:
-   //  // Save all callee saved values and init them
-   //  pushq %r12 // Saving callee-saved register r12 = buckets
-   //  pushq %r13 // Saving callee-saved register r13 = num_buckets
-   //  pushq %r14 // Saving callee-saved register r14 = s
-   //  pushq %r15 // Saving callee-saved register r15 => temporary values
-   //  subq $24, %rsp // Allocate space for local variable 'inserted'
-// 
-   //  movq %rdi, %r12 // Store buckets in r12
-   //  movq %rsi, %r13 // Store num_buckets in r13
-   //  movq %rdx, %r14 // Save s in r14
-// 
-   //  movq %r14, %rdi // Move s to rdi to pass into wchash
-   //  call wc_hash // it returns a uint32
-   //  movl %eax, %r15d // r15 holds wc_hash which is uint32
-   //  // movslq %r15d, %rax
-	// movq $0, %rdx
-   //  divq %r13 // Divide rdx:rax by r13
-   //  movq %rdx, %r15 // Store remainder of division to r15
-// 
-   //  leaq (%r12, %r15, 8), %rdi // Store address of buckets[index] into first param
-// 
-   //  movq %r14, %rsi // Move s to rsi
-   //  leaq 16(%rsp), %rdx // Move address of 'inserted' to rdx (3rd param)
-   //  call wc_find_or_insert
-// 
-   //  // Restore saved registers and deallocate space for local variable
-   //  addq $24, %rsp
-   //  popq %r15
-   //  popq %r14
-   //  popq %r13
-   //  popq %r12
-// 
-   //  ret
-   pushq %rbx
-   pushq %r12
-   pushq %r13
-   pushq %r14
-   pushq %r15
+//  Save all callee saved values and init them
+  pushq %r12 // Saving callee-saved register r12 = buckets
+  pushq %r13 // Saving callee-saved register r13 = num_buckets
+  pushq %r14 // Saving callee-saved register r14 = s
+  pushq %r15 // Saving callee-saved register r15 => temporary values
 
-   movq %rdi, %r12
-   movq %rsi, %r13
-   movq %rdx, %r14
-   
-   movq %r14, %rdi
-   call wc_hash
-   xorl %edx, %edx
-   divl %r13d
-   movl %edx, %r15d
+  movq %rdi, %r12 // Store buckets in r12
+  movq %rsi, %r13 // Store num_buckets in r13
+  movq %rdx, %r14 // Save s in r14
 
-   movq (%r12, %r15, 8), %rdi
+  movq %r14, %rdi // Move s to rdi to pass into wc_hash
+  call wc_hash // it returns a uint32
+  movl $0, %edx
+  movl %eax, %r15d // r15 holds wc_hash which is uint32
+  // movslq %r15d, %rax/ movq $0, %rdx
+  divl %r13d // Divide rdx:rax by r13
+  movl %edx, %r15d // Store remainder of division to r15
 
-   movq %r14, %rsi
-   leaq -40(%rsp), %rdx
-   movl $0, (%rdx)
-   pushq %rdx
-   subq $8, %rsp
-   call wc_find_or_insert
-   addq $8, %rsp
-   popq %rdx
-   cmpl $0, (%rdx)
-   je .doneDict
-   movq %rax, (%r12, %r15, 8)
-.doneDict:
-   popq %r15
-   popq %r14
-   popq %r13
-   popq %r12
-   popq %rbx
-   ret
+  movq (%r12, %r15, 8), %rdi // Store address of buckets[index] into first param
+
+  movq %r14, %rsi // Move s to rsi
+  leaq -16(%rsp), %rdx // Move address of 'inserted' to rdx (3rd param)
+  movl $0, (%rdx) // Save 0 into inserted
+  pushq %rdx // save inserted pointer to stack 
+  subq $8, %rsp // Align stack
+  call wc_find_or_insert 
+  addq $8, %rsp // Align stack
+  popq %rdx // pop inserted pointer from stack
+  cmpl $0, (%rdx) // Check if it's been inserted
+  je .LdictFindRestoreAndReturn // If not, no need to do anything extra, just return
+  movq %rax, (%r12, %r15, 8) // If it's been inserted, then we gotta save it to the buckets memory as well
+.LdictFindRestoreAndReturn:
+  // Restore saved registers
+  popq %r15
+  popq %r14
+  popq %r13
+  popq %r12
+
+  ret
 
 /*
  * Free all of the nodes in given linked list of WordEntry objects.
