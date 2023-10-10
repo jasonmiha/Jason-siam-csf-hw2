@@ -423,7 +423,7 @@ wc_trim_non_alpha:
  */
 	.globl wc_find_or_insert
 wc_find_or_insert:
- 	subq $48, %rsp // Align stack ptr
+ 	subq $16, %rsp // Align stack ptr
  	pushq %rbx // Saving callee-saved register %rbx = itr 
  	pushq %rbp // Saving callee-saved register %rbp = entry
  	pushq %r12 // Saving callee-saved register %r12 = s
@@ -455,21 +455,22 @@ wc_find_or_insert:
 .LincrementPtrAndRepeat:
  	// Set iterator to next element; itr is pointer to struct, so beginning address of next
 	// should be at 64 (word) + 4 (count) + 4 (padding) = 72
-	leaq 72(%rbx), %rbx // Get memory address of where next pointer is stored
-	movq (%rbx), %rbx // Get actual next itr ptr and save it as such
- 	jmp .LwhileElementsInList
+	//leaq 72(%rbx), %rbx // Get memory address of where next pointer is stored
+	//movq (%rbx), %rbx // Get actual next itr ptr and save it as such
+ 	movq WORDENTRY_NEXT_OFFSET(%rbx), %rbx
+	jmp .LwhileElementsInList
 	
  .LendOfList:
+ 	movq $1, (%r13) // Set inserted value to 1
  	movq $80, %rdi // Move sizeof(struct WordEntry) = 80 (64 word, 4 count, 4 padding, 8 next ptr) to %rdi
  	call malloc // Allocate memory of size 80
  	movq %rax, %rbp // Store ptr returned by malloc to rbp, which is now the entry pointer
 	// Copy word to entry->word
+ 	movq %r14, WORDENTRY_NEXT_OFFSET(%rbp) // Set next WordEntry ptr of entry to head
+ 	movl $0, WORDENTRY_COUNT_OFFSET(%rbp) // Set count of entry to 0 
  	movq %rbp, %rdi // Save entry->word to rdi
  	movq %r12, %rsi // Save s to rsi
  	call wc_str_copy // Copy s to entry->word
- 	movl $0, 64(%rbp) // Set count of entry to 0 
- 	movq %r14, 72(%rbp) // Set next WordEntry ptr of entry to head
- 	movq $1, (%r13) // Set inserted value to 1
  	movq %rbp, %rax // Save entry to return variable
  .LrestoreCalleeValuesAndReturn:
  	popq %r14 // Restoring callee-saved register %r14
@@ -477,7 +478,7 @@ wc_find_or_insert:
  	popq %r12 // Restoring callee-saved register %r12
  	popq %rbp // Restoring callee-saved register %rbp
  	popq %rbx // Restoring callee-saved register %rbx
- 	addq $48, %rsp // Align stack ptr
+ 	addq $16, %rsp // Align stack ptr
  	ret
  
 /*
