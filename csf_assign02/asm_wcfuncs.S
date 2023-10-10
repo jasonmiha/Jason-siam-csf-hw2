@@ -425,7 +425,7 @@ wc_trim_non_alpha:
 wc_find_or_insert:
  	subq $48, %rsp // Align stack ptr
  	pushq %rbx // Saving callee-saved register %rbx = itr 
- 	pushq %rcx // Saving callee-saved register %rcx = entry
+ 	pushq %rbp // Saving callee-saved register %rbp = entry
  	pushq %r12 // Saving callee-saved register %r12 = s
  	pushq %r13 // Saving callee-saved register %r13 = inserted address
  	pushq %r14 // Saving callee-saved register %r14 = head ptr
@@ -462,21 +462,21 @@ wc_find_or_insert:
  .LendOfList:
  	movq $80, %rdi // Move sizeof(struct WordEntry) = 80 (64 word, 4 count, 4 padding, 8 next ptr) to %rdi
  	call malloc // Allocate memory of size 80
- 	movq %rax, %rcx // Store ptr returned by malloc to rcx, which is now the entry pointer
+ 	movq %rax, %rbp // Store ptr returned by malloc to rbp, which is now the entry pointer
 	// Copy word to entry->word
- 	movq %rcx, %rdi // Save entry->word to rdi
+ 	movq %rbp, %rdi // Save entry->word to rdi
  	movq %r12, %rsi // Save s to rsi
  	call wc_str_copy // Copy s to entry->word
- 	movl $0, 64(%rcx) // Set count of entry to 0 
- 	movq %r14, 72(%rcx) // Set next WordEntry ptr of entry to head
+ 	movl $0, 64(%rbp) // Set count of entry to 0 
+ 	movq %r14, 72(%rbp) // Set next WordEntry ptr of entry to head
  	movq $1, (%r13) // Set inserted value to 1
- 	movq %rcx, %rax // Save entry to return variable
+ 	movq %rbp, %rax // Save entry to return variable
  .LrestoreCalleeValuesAndReturn:
- 	popq %r14 // Restoring callee-saved register %rbx
- 	popq %r13 // Restoring callee-saved register %rcx
+ 	popq %r14 // Restoring callee-saved register %r14
+ 	popq %r13 // Restoring callee-saved register %r13
  	popq %r12 // Restoring callee-saved register %r12
- 	popq %rcx // Restoring callee-saved register %r13
- 	popq %rbx // Restoring callee-saved register %r14
+ 	popq %rbp // Restoring callee-saved register %rbp
+ 	popq %rbx // Restoring callee-saved register %rbx
  	addq $48, %rsp // Align stack ptr
  	ret
  
@@ -492,44 +492,75 @@ wc_find_or_insert:
  * C function prototype:
  *    struct WordEntry *wc_dict_find_or_insert(struct WordEntry *buckets[], unsigned num_buckets, const unsigned char *s);
  */
-	.globl wc_dict_find_or_insert
+.globl wc_dict_find_or_insert
 wc_dict_find_or_insert:
-	// Save all callee saved values and init them
-	// all my pushes are 5 which is also an odd multiple of 8... so odd multiple plus odd multiple is even multiple
-	pushq %r12 // Saving callee-saved register r12 = buckets
-	pushq %r13 // Saving callee-saved register r13 = num_buckets
-	pushq %r14 // Saving callee-saved register r14 = s
-	pushq %r15 // Saving callee-saved register r15 => temporary values
-	pushq %rbp // Saving callee-saved register rbp = inserted
-	movq %rdi, %r12 // Store buckets in r12
-	movq %rsi, %r13 // Store num_buckets in r13
-	movq %rdx, %r14 // Save s in r14
-	subq $16, %rsp // this is odd multiple of 8 // now its even multiple; i fixed it?
-	movq %rsp, %rbp // Assign address of inserted to rbx
-	movq $0, (%rbp) // Init inserted with value 0 // It is not a value of 0
+   //  // Save all callee saved values and init them
+   //  pushq %r12 // Saving callee-saved register r12 = buckets
+   //  pushq %r13 // Saving callee-saved register r13 = num_buckets
+   //  pushq %r14 // Saving callee-saved register r14 = s
+   //  pushq %r15 // Saving callee-saved register r15 => temporary values
+   //  subq $24, %rsp // Allocate space for local variable 'inserted'
+// 
+   //  movq %rdi, %r12 // Store buckets in r12
+   //  movq %rsi, %r13 // Store num_buckets in r13
+   //  movq %rdx, %r14 // Save s in r14
+// 
+   //  movq %r14, %rdi // Move s to rdi to pass into wchash
+   //  call wc_hash // it returns a uint32
+   //  movl %eax, %r15d // r15 holds wc_hash which is uint32
+   //  // movslq %r15d, %rax
+	// movq $0, %rdx
+   //  divq %r13 // Divide rdx:rax by r13
+   //  movq %rdx, %r15 // Store remainder of division to r15
+// 
+   //  leaq (%r12, %r15, 8), %rdi // Store address of buckets[index] into first param
+// 
+   //  movq %r14, %rsi // Move s to rsi
+   //  leaq 16(%rsp), %rdx // Move address of 'inserted' to rdx (3rd param)
+   //  call wc_find_or_insert
+// 
+   //  // Restore saved registers and deallocate space for local variable
+   //  addq $24, %rsp
+   //  popq %r15
+   //  popq %r14
+   //  popq %r13
+   //  popq %r12
+// 
+   //  ret
+   pushq %rbx
+   pushq %r12
+   pushq %r13
+   pushq %r14
+   pushq %r15
 
-	movq %r14, %rdi // Move s to rdi to pass into wchash
-	call wc_hash // it returns a uint32
-	movl %eax, %r15d // r15 holds wc_hash which is uint32 // !PROBLEM SPOTTED: index is wrong value which makes the thing access wrong index and messes up everything
-	movslq %r15d, %rax
-	movq $0, %rdx
-	divq %r13 // Divide rdx:rax by r13
-	// r15 now represents index
-	movq %rdx, %r15 // Store remainder of division to r15
-	// leaq %rbp, %rbp // Store pointer of rbx to itself ! Problem, cuz address is 0...
-	leaq (%r12, %r15, 8), %rdi // Store address of buckets[index] into first param
-	// Note I might need to do movq (%rdi), %rdi
-	// movq (%rdi), %rdi
-	movq %r14, %rsi // Move s to rsi
-	movq %rbp, %rdx // Move inserted variable pointer to rdx (3rd param)
-	call wc_find_or_insert
-	pushq %rbp // Saving callee-saved register rbx = inserted
-	pushq %r15 // Saving callee-saved register r15 => temporary values
-	pushq %r14 // Saving callee-saved register r14 = s
-	pushq %r13 // Saving callee-saved register r13 = num_buckets
-	pushq %r12 // Saving callee-saved register r12 = buckets
-	addq $16, %rsp
-	ret
+   movq %rdi, %r12
+   movq %rsi, %r13
+   movq %rdx, %r14
+   
+   movq %r14, %r12
+   call wc_hash
+   xorl %edx, %edx
+   divl %r13d
+   movl %edx, %r15d
+
+   movq (%r12, %r15, 8), %rdi
+
+   movq %r14, %rsi
+   leaq -40(%rsp), %rdx
+   movl $0, (%rdx)
+   pushq %rdx
+   subq $8, %rsp
+   call wc_find_or_insert
+   addq $8, %rsp
+   popq %rdx
+
+.doneDict:
+   popq %r15
+   popq %r14
+   popq %r13
+   popq %r12
+   popq %rbx
+   ret
 
 /*
  * Free all of the nodes in given linked list of WordEntry objects.
