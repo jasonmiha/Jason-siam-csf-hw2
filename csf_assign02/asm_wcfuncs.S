@@ -105,14 +105,14 @@ wc_str_compare:
 	ret
 .LfirstParamIsNullTerminator:
 	cmpb $0, (%r13) // Check if 2nd param is also null terminator 
-	jne .LfirstParamLessThan /* if second param not null terminator, it means rhs string is less than lhs string, so jump to appropriate label to handle that 
-	movq $0, %rax /* if second param is null terminator, then both strings are equal, so copy 0 to return register 
+	jne .LfirstParamLessThan // If second param not null terminator, it means rhs string is less than lhs string, so jump to appropriate label to handle that 
+	movq $0, %rax // If second param is null terminator, then both strings are equal, so copy 0 to return register 
 	popq %r13
 	popq %r12
-	addq $24, %rsp /* adjust stack pointer */
+	addq $24, %rsp // Adjust stack pointer 
 	ret
 .LsecondParamIsNullTerminator:
-	cmpb $0, (%r12) // Check if 1st param is also null terminator */
+	cmpb $0, (%r12) // Check if 1st param is also null terminator
 	jne .LfirstParamGreaterThan // If 1st param not null terminator, it means rhs string is greater than lhs string, so jump to appropriate label 
 	movq $0, %rax // If second param is also a null terminator, then both strings are equal so copy 0 to return register 
 	popq %r13
