@@ -553,7 +553,9 @@ wc_dict_find_or_insert:
    call wc_find_or_insert
    addq $8, %rsp
    popq %rdx
-
+   cmpl $0, (%rdx)
+   je .doneDict
+   movq %rax, (%r12, %r15, 8)
 .doneDict:
    popq %r15
    popq %r14
